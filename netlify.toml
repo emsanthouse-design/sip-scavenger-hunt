@@ -1,13 +1,14 @@
-# Netlify build + routing config for Rate Quest.
-# Functions use v2 syntax and declare their own paths (/api/respond, /api/results),
-# so the only redirect we need is the SPA fallback so client routes like /results work.
+# Netlify build + routing config for the SIP Scavenger Hunt tracker.
+# Functions use v2 syntax and declare their own paths (/api/*), so the only
+# redirect we need is the SPA fallback so client routes like /admin work.
 
 [build]
   command = "npm run build"
   publish = "dist"
   functions = "netlify/functions"
 
-# SPA fallback: serve index.html for any non-API, non-function route.
+# SPA fallback: serve index.html for any non-API route so React Router-style
+# client routing (/admin, /join, ...) survives a hard refresh.
 [[redirects]]
   from = "/*"
   to = "/index.html"

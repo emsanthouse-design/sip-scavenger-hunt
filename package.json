@@ -1,20 +1,20 @@
 {
-  "name": "rate-quest",
+  "name": "sip-scavenger-hunt",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Rate Quest - a gamified two-card concept test for rate-locked homeowners (BU SI 839 class project)",
+  "description": "City of Boston SIP scavenger hunt tracker: phone-first challenge check-off + evidence upload for interns, live verification dashboard for the admin.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@netlify/blobs": "^8.1.0",
     "@vitejs/plugin-react": "^4.3.4",
     "vite": "^5.4.11"
   }
