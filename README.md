@@ -18,17 +18,6 @@ file storage, and realtime) — all on free tiers, $0 for an event this size.
 
 ---
 
-## ⭐ First: give this repo a clean name (optional, 1 minute)
-
-This project lives in a repo currently named `military-time-conversion`. To make
-it your dedicated scavenger-hunt repo, rename it on GitHub:
-
-1. Go to the repo on GitHub → **Settings** (top tab).
-2. Under **Repository name**, change it to `sip-scavenger-hunt` (or anything).
-3. Click **Rename**. Done — same code, cleaner name. Nothing else to change.
-
----
-
 ## 🚀 Setup checklist (about 20 minutes, no coding)
 
 You'll set up two free accounts — **Supabase** (data + photos) and **Netlify**
@@ -45,31 +34,36 @@ You'll set up two free accounts — **Supabase** (data + photos) and **Netlify**
    **entire** contents, paste into the query box, and click **Run**.
    This creates all the tables, security rules, the photo storage bucket, and
    seeds the challenges/teams. (It's safe to run again later if needed.)
-5. In the sidebar, open **Project Settings → API**. You'll copy three values in
-   the next steps:
+5. In the sidebar, open **Project Settings → API Keys**. You'll copy three values:
    - **Project URL** (looks like `https://abcd1234.supabase.co`)
-   - **anon public** key (a long string — safe to expose)
-   - **service_role** key (a long string — **keep secret**)
+   - **anon / publishable** key (a long string — safe to expose)
+   - **service_role / secret** key (a long string — **keep secret**)
 
 ### 2. Deploy to Netlify (the actual website)
 
-1. Go to **https://netlify.com** → sign up (free) → **Add new site → Import an
-   existing project** → connect GitHub → pick this repo.
+1. Go to **https://netlify.com** → sign up (free, use GitHub) → **Add new
+   project → Import an existing project** → connect GitHub → pick this repo.
 2. Netlify reads the build settings automatically from `netlify.toml`
    (build command `npm run build`, publish directory `dist`). Just click
    **Deploy**.
-3. After the first deploy, open **Site settings → Environment variables** and add
-   these four (use the values you copied from Supabase):
+3. After the first deploy, open **Site configuration → Environment variables** and
+   add these four (use the values you copied from Supabase). Leave each one on the
+   defaults — secret box **unchecked**, **All scopes**, **Same value for all
+   deploy contexts**:
 
    | Key | Value |
    |-----|-------|
    | `VITE_SUPABASE_URL` | your Supabase **Project URL** |
-   | `VITE_SUPABASE_ANON_KEY` | your Supabase **anon public** key |
-   | `SUPABASE_SERVICE_ROLE_KEY` | your Supabase **service_role** key (secret) |
+   | `VITE_SUPABASE_ANON_KEY` | your Supabase **anon / publishable** key |
+   | `SUPABASE_SERVICE_ROLE_KEY` | your Supabase **service_role / secret** key |
    | `ADMIN_PASSWORD` | any password you choose for the admin dashboard |
 
 4. Trigger a fresh deploy so the new variables take effect:
    **Deploys → Trigger deploy → Deploy site**.
+
+> Note: `netlify.toml` tells Netlify's secret scanner that the two `VITE_`
+> Supabase values are public by design (they're embedded in the browser bundle
+> and protected by row-level security), so the build won't fail on finding them.
 
 ### 3. You're live 🎉
 
@@ -180,6 +174,51 @@ editable in Settings, so nothing is locked in:
 - **Roaming bonus** — one-time per team, value editable in Settings (default +3).
 - **"Accessibility office" slot** — left as an editable, hidden-by-default
   challenge in Quest 4 (turn it on / rename it in Settings).
+
+---
+
+## 🔁 Iterating from here (how to change things)
+
+Deploys are automatic: anything that lands on the `main` branch rebuilds and goes
+live in ~1–2 minutes, no clicking. So "iterating" just means making changes —
+publishing takes care of itself. There are two lanes depending on the change.
+
+### Lane 1 — Change it yourself, instantly, no code
+Everything in **Admin → Settings** writes straight to the database and is live
+immediately. Use it for last-minute and day-of tweaks:
+- Challenge **titles**, **point values**, **caps** (×2 etc.), show/hide a
+  challenge (the **Active** toggle), the **enhanced-proof** flag
+- **Teams** (names + join codes)
+- **Hero's Journey** tier bonuses and the **roaming** bonus value
+
+### Lane 2 — Needs a code change (ask Claude)
+Describe what you want in plain English; the change is edited, pushed, and live
+in ~2 minutes. This covers:
+- **Aesthetic / thematic** changes — colors, fonts, renaming "Hero's Journey"
+  (e.g. "Paul Revere's Midnight Ride"), the historic look, copy, icons
+- **Structure** — new evidence types, new fields, in-app riddle text, a new quest
+- **New features** and any intern-facing copy that isn't a challenge title
+
+### Finalizing the content (the working-draft → final pass)
+The challenge content is seeded from a draft. Important: re-running
+`supabase/schema.sql` will **not** overwrite challenges that already exist (it
+skips them on purpose, so the script stays safe to re-run). So when the final
+draft is ready:
+- **Small/scattered edits** → do them in **Settings** (self-serve).
+- **Big or structural changes** (many challenges reworded, new evidence
+  requirements, reordering, new items) → hand the finalized draft to Claude and
+  it'll bulk-update the seed and push an overwrite in one shot — far less tedious
+  than retyping everything into Settings.
+
+### Testing the experience from both sides
+- **Intern side:** the main URL → join with a team code → submit a real photo
+  (do this on an actual phone — it's built phone-first).
+- **Admin side:** `/admin` → password → verify / reject / partial credit → watch
+  the leaderboard move.
+
+Keep a running list of "this should feel different" notes and hand them over in
+whatever form is easiest (a list, screenshots). Each gets triaged into a quick
+tweak or a bigger lift.
 
 ---
 
