@@ -7,6 +7,14 @@
   publish = "dist"
   functions = "netlify/functions"
 
+# These two are PUBLIC by design (the Supabase project URL + anon/publishable
+# key are embedded in the browser bundle and protected by row-level security).
+# Tell Netlify's secret scanner not to flag them, so the build doesn't fail when
+# it finds them in the published output. The genuinely secret values
+# (SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD) are NOT omitted and stay scanned.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
+
 # SPA fallback: serve index.html for any non-API route so React Router-style
 # client routing (/admin, /join, ...) survives a hard refresh.
 [[redirects]]
