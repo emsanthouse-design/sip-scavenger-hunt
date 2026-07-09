@@ -152,32 +152,33 @@ values
 
   -- Quest 2 — Solve the Riddle (hints are facilitator-only)
   ('riddle-state-house',   2, 'Riddle 1 — the golden-domed lawmakers'' home', 2, 1, 'photo', false, 'Answer: Massachusetts State House (Beacon Hill).', true, 1),
-  ('riddle-granary',       2, 'Riddle 2 — a signer rests among old stones', 2, 1, 'photo', false, 'Answer: Granary Burying Ground.', true, 2),
+  ('riddle-granary',       2, 'Riddle 2 — a signer rests among old stones', 2, 1, 'photo', false, 'Answer: Granary Burying Ground (John Hancock''s grave).', true, 2),
   ('riddle-swan-boats',    2, 'Riddle 3 — shaped like birds, glide on water', 2, 1, 'photo', false, 'Answer: Swan Boats (Public Garden).', true, 3),
   ('riddle-faneuil',       2, 'Riddle 4 — the "cradle" where voices rose', 2, 1, 'photo', false, 'Answer: Faneuil Hall.', true, 4),
   ('riddle-quincy-market', 2, 'Riddle 5 — food-filled favorite beside historic halls', 2, 1, 'photo', false, 'Answer: Quincy Market.', true, 5),
   ('riddle-dunkin',        2, 'Riddle 6 — the orange-and-pink morning stop', 2, 1, 'photo', false, 'Answer: Dunkin''.', true, 6),
   ('riddle-bell-in-hand',  2, 'Riddle 7 — a town crier''s famous tavern', 2, 1, 'photo', false, 'Answer: Bell in Hand Tavern.', true, 7),
-  ('riddle-art-venue',     2, 'Riddle 8 — Boston''s home for art', 2, 1, 'photo', false, 'Answer: a Boston art venue (confirm intended site).', true, 8),
+  ('riddle-art-venue',     2, 'Riddle 8 — Boston''s home for art', 2, 1, 'photo', false, 'Answer: Boston Center for the Arts.', true, 8),
   ('riddle-old-south',     2, 'Riddle 9 — where crowds met before tea hit the bay', 2, 1, 'photo', false, 'Answer: Old South Meeting House.', true, 9),
   ('riddle-revere-house',  2, 'Riddle 10 — a midnight rider''s North End home', 2, 1, 'photo', false, 'Answer: Paul Revere House.', true, 10),
   ('riddle-union-oyster',  2, 'Riddle 11 — America''s oldest restaurant, oysters its fame', 2, 1, 'photo', false, 'Answer: Union Oyster House.', true, 11),
-  ('riddle-mikes-pastry',  2, 'Riddle 12 — North End bakery known for cannoli', 2, 1, 'photo', false, 'Answer: Mike''s Pastry (confirm before use).', true, 12),
+  ('riddle-mikes-pastry',  2, 'Riddle 12 — North End bakery known for cannoli', 2, 1, 'photo', false, 'Answer: Bova''s Bakery OR Mike''s Pastry (both accepted).', true, 12),
 
   -- Quest 3 — Lights, Camera, Boston
   ('video-music',   3, '30-second music video — World Cup theme', 3, 1, 'video', false, null, true, 1),
   ('video-tourism', 3, '30-second "Boston Tourism Commercial" (full team on camera)', 3, 1, 'video', false, null, true, 2),
   ('video-plaque',  3, '15-second dramatic reading from a public historical plaque', 3, 1, 'video', false, null, true, 3),
-  ('video-9th-map', 3, '15-second video explaining what one of the 9th-floor maps shows', 3, 1, 'video', false, null, true, 4),
+  ('video-9th-map', 3, '15-second video explaining what one of the 9th-floor maps in City Hall shows', 3, 1, 'video', false, null, true, 4),
 
   -- Quest 4 — City Hall Insider
   ('cityhall-model-room', 4, 'Visit the model room', 2, 1, 'photo', false, null, true, 1),
-  ('cityhall-councilor',  4, 'Photo with a City Council member', 2, 1, 'photo', false, null, true, 2),
-  ('cityhall-service',    4, 'Photo that represents "public service" — explain how', 2, 1, 'photo', true, null, true, 3),
-  ('cityhall-bcyf',       4, 'Visit a BCYF center inside the perimeter — bring back a program brochure', 2, 1, 'photo', true, null, true, 4),
-  ('cityhall-mezzanine',  4, '15-second video explaining the mezzanine art exhibit', 2, 1, 'video', false, null, true, 5),
-  ('cityhall-common',     4, 'Team video: one thing all your departments have in common', 2, 1, 'video', false, null, true, 6),
-  ('cityhall-slot',       4, '(Configurable slot — edit or hide in Settings)', 2, 1, 'photo', false, null, false, 7),
+  ('cityhall-flag',       4, 'Identify the flag (besides the US & Boston flags) flown outside City Hall today — and explain why it matters', 2, 1, 'photo', true, null, true, 2),
+  ('cityhall-councilor',  4, 'Photo with a City Council member', 2, 1, 'photo', false, null, true, 3),
+  ('cityhall-service',    4, 'Photo that represents "public service" — explain how', 2, 1, 'photo', true, null, true, 4),
+  ('cityhall-bcyf',       4, 'Visit a BCYF center inside the perimeter — bring back a program brochure', 2, 1, 'photo', true, null, true, 5),
+  ('cityhall-mezzanine',  4, '15-second video explaining the mezzanine art exhibit', 2, 1, 'video', false, null, true, 6),
+  ('cityhall-common',     4, 'Team video: one thing all your departments have in common', 2, 1, 'video', false, null, true, 7),
+  ('cityhall-slot',       4, '(Configurable slot — edit or hide in Settings)', 2, 1, 'photo', false, null, false, 8),
 
   -- Quest 5 — Culture & Community
   ('culture-pao',         5, 'Pao Arts Center — team photo + name an exhibit + bring back a brochure', 5, 1, 'photo', true, null, true, 1),

@@ -57,26 +57,27 @@ export const CHALLENGES = [
   // Riddle text lives in the printed packet; the app just needs the line items.
   // hint = facilitator-only answer (NEVER shown to interns).
   { id: 'riddle-state-house',   quest: 2, title: 'Riddle 1 — the golden-domed lawmakers’ home', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: Massachusetts State House (Beacon Hill).' },
-  { id: 'riddle-granary',       quest: 2, title: 'Riddle 2 — a signer rests among old stones', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: Granary Burying Ground.' },
+  { id: 'riddle-granary',       quest: 2, title: 'Riddle 2 — a signer rests among old stones', points: 2, maxClaims: 1, evidence: 'photo', hint: "Answer: Granary Burying Ground (John Hancock's grave)." },
   { id: 'riddle-swan-boats',    quest: 2, title: 'Riddle 3 — shaped like birds, glide on water', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: Swan Boats (Public Garden).' },
   { id: 'riddle-faneuil',       quest: 2, title: 'Riddle 4 — the "cradle" where voices rose', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: Faneuil Hall ("Cradle of Liberty").' },
   { id: 'riddle-quincy-market', quest: 2, title: 'Riddle 5 — food-filled favorite beside historic halls', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: Quincy Market.' },
   { id: 'riddle-dunkin',        quest: 2, title: 'Riddle 6 — the orange-and-pink morning stop', points: 2, maxClaims: 1, evidence: 'photo', hint: "Answer: Dunkin'." },
   { id: 'riddle-bell-in-hand',  quest: 2, title: 'Riddle 7 — a town crier’s famous tavern', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: Bell in Hand Tavern.' },
-  { id: 'riddle-art-venue',     quest: 2, title: 'Riddle 8 — Boston’s home for art', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: a Boston art venue (confirm intended site with facilitators).' },
+  { id: 'riddle-art-venue',     quest: 2, title: 'Riddle 8 — Boston’s home for art', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: Boston Center for the Arts.' },
   { id: 'riddle-old-south',     quest: 2, title: 'Riddle 9 — where crowds met before tea hit the bay', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: Old South Meeting House.' },
   { id: 'riddle-revere-house',  quest: 2, title: 'Riddle 10 — a midnight rider’s North End home', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: Paul Revere House.' },
   { id: 'riddle-union-oyster',  quest: 2, title: 'Riddle 11 — America’s oldest restaurant, oysters its fame', points: 2, maxClaims: 1, evidence: 'photo', hint: 'Answer: Union Oyster House.' },
-  { id: 'riddle-mikes-pastry',  quest: 2, title: 'Riddle 12 — North End bakery known for cannoli', points: 2, maxClaims: 1, evidence: 'photo', hint: "Answer: Mike's Pastry (confirm before use)." },
+  { id: 'riddle-mikes-pastry',  quest: 2, title: 'Riddle 12 — North End bakery known for cannoli', points: 2, maxClaims: 1, evidence: 'photo', hint: "Answer: Bova's Bakery OR Mike's Pastry (both accepted)." },
 
   // --- Quest 3: Lights, Camera, Boston (3 pts each, video) -------------------
   { id: 'video-music',     quest: 3, title: '30-second music video — World Cup theme', points: 3, maxClaims: 1, evidence: 'video' },
   { id: 'video-tourism',   quest: 3, title: '30-second "Boston Tourism Commercial" (full team on camera)', points: 3, maxClaims: 1, evidence: 'video' },
   { id: 'video-plaque',    quest: 3, title: '15-second dramatic reading from a public historical plaque', points: 3, maxClaims: 1, evidence: 'video' },
-  { id: 'video-9th-map',   quest: 3, title: '15-second video explaining what one of the 9th-floor maps shows', points: 3, maxClaims: 1, evidence: 'video' },
+  { id: 'video-9th-map',   quest: 3, title: '15-second video explaining what one of the 9th-floor maps in City Hall shows', points: 3, maxClaims: 1, evidence: 'video' },
 
   // --- Quest 4: City Hall Insider (2 pts each) ------------------------------
   { id: 'cityhall-model-room', quest: 4, title: 'Visit the model room', points: 2, maxClaims: 1, evidence: 'photo' },
+  { id: 'cityhall-flag',       quest: 4, title: 'Identify the flag (besides the US & Boston flags) flown outside City Hall today — and explain why it matters', points: 2, maxClaims: 1, evidence: 'photo', enhanced: true },
   { id: 'cityhall-councilor',  quest: 4, title: 'Photo with a City Council member', points: 2, maxClaims: 1, evidence: 'photo' },
   { id: 'cityhall-service',    quest: 4, title: 'Photo that represents "public service" — explain how', points: 2, maxClaims: 1, evidence: 'photo', enhanced: true },
   { id: 'cityhall-bcyf',       quest: 4, title: 'Visit a BCYF center inside the perimeter — bring back a program brochure', points: 2, maxClaims: 1, evidence: 'photo', enhanced: true },

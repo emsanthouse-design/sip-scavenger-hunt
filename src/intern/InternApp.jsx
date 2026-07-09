@@ -3,7 +3,6 @@ import { useHuntData } from '../lib/useHuntData'
 import { useTeamSubmissions } from '../lib/useTeamSubmissions'
 import { buildMaps, scoreTeam } from '../lib/scoring'
 import { pendingSyncCount } from '../lib/outbox'
-import { useRoute } from '../lib/useRoute'
 import JoinTeam from './JoinTeam.jsx'
 import ScoreHeader from './ScoreHeader.jsx'
 import ChallengeCard from './ChallengeCard.jsx'
@@ -28,7 +27,6 @@ export default function InternApp() {
   const { loading, challenges, quests, config, teams } = useHuntData()
   const [saved, setSaved] = useState(loadSaved)
   const [openChallenge, setOpenChallenge] = useState(null)
-  const [, navigate] = useRoute()
   const online = useOnline()
 
   const team = saved.team
@@ -83,6 +81,12 @@ export default function InternApp() {
       )}
 
       <div className="pad">
+        <div className="banner info" style={{ marginBottom: 4 }}>
+          🗺 Use your printed packet to find and solve each challenge. Come here to
+          check it off and upload your photo/video proof. The numbers below match
+          your packet.
+        </div>
+
         {orderedQuests.map((q) => {
           const items = activeChallenges.filter((c) => c.quest === q.id)
           if (items.length === 0) return null
@@ -94,10 +98,11 @@ export default function InternApp() {
                 </h2>
               </div>
               <div className="quest-tag">{q.tagline}</div>
-              {items.map((c) => (
+              {items.map((c, i) => (
                 <ChallengeCard
                   key={c.id}
                   challenge={c}
+                  number={q.id === 0 ? null : i + 1}
                   subs={subsByChallenge.get(c.id) || []}
                   onOpen={setOpenChallenge}
                 />
@@ -107,20 +112,21 @@ export default function InternApp() {
         })}
 
         <div className="spacer" />
-        <div className="row spread">
-          <button className="ghost small" onClick={leave}>
-            Switch team
-          </button>
-          <a
+        <div className="center">
+          <span
             className="adminlink"
-            href="/admin"
-            onClick={(e) => {
-              e.preventDefault()
-              navigate('/admin')
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              if (
+                window.confirm(
+                  `You're on ${team.name}. Only switch if you joined the wrong team — you'll need that team's code to rejoin.`,
+                )
+              )
+                leave()
             }}
           >
-            Admin
-          </a>
+            Joined the wrong team?
+          </span>
         </div>
         <div className="spacer" />
       </div>

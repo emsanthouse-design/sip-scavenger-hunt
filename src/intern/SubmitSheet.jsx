@@ -110,11 +110,12 @@ export default function SubmitSheet({ challenge, team, memberName, subs, config,
               display: 'block', textAlign: 'center', padding: 14,
               borderRadius: 12, border: '2px dashed #c4c7cb',
             }}>
-              {file ? 'Choose a different file' : `Take / choose ${accept === 'video/*' ? 'a video' : 'a photo'}`}
+              {file ? 'Choose a different file' : `Take or choose ${accept === 'video/*' ? 'a video' : 'a photo'}`}
+              {/* No `capture` attribute, so phones offer BOTH the live camera and
+                  the photo library (a teammate may have snapped it on their phone). */}
               <input
                 type="file"
                 accept={accept}
-                capture="environment"
                 style={{ display: 'none' }}
                 onChange={pickFile}
               />

@@ -8,7 +8,7 @@ const STATUS_LABEL = {
   rejected: 'Rejected',
 }
 
-export default function ChallengeCard({ challenge, subs, onOpen }) {
+export default function ChallengeCard({ challenge, subs, onOpen, number }) {
   // Best status across this challenge's submissions for the team.
   const statuses = subs.map((s) =>
     s._local && s.status === 'pending' ? 'uploading' : s.status,
@@ -27,7 +27,10 @@ export default function ChallengeCard({ challenge, subs, onOpen }) {
     <div className="challenge" onClick={() => onOpen(challenge)}>
       <div className={'statusdot ' + (dotClass || '')} />
       <div className="body">
-        <div className="title">{challenge.title}</div>
+        <div className="title">
+          {number != null && <span className="itemno">{number}.</span>}
+          {challenge.title}
+        </div>
         <div className="meta">
           <span className="pts-badge">
             {challenge.points} pt{challenge.points === 1 ? '' : 's'}

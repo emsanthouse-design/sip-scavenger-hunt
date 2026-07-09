@@ -267,6 +267,12 @@ textarea {
   font-size: 15px;
   line-height: 1.35;
 }
+.itemno {
+  font-family: var(--display);
+  font-weight: 800;
+  color: var(--optimistic-blue);
+  margin-right: 6px;
+}
 .challenge .meta {
   margin-top: 5px;
   display: flex;

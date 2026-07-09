@@ -33,6 +33,10 @@ export default function JoinTeam({ teams, onJoin }) {
             Trade your desk for the streets. Join your team, knock out challenges,
             snap your proof, and rack up points across Boston. Most points wins.
           </p>
+          <p className="muted small" style={{ margin: 0 }}>
+            Your team code is in your printed packet. Use the packet to find and
+            solve challenges — this app is where you check them off and upload proof.
+          </p>
         </div>
 
         <form className="card stack" onSubmit={submit}>
@@ -40,27 +44,11 @@ export default function JoinTeam({ teams, onJoin }) {
           <input
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="e.g. HUB"
+            placeholder="Enter your team’s code"
             autoCapitalize="characters"
             autoCorrect="off"
             inputMode="text"
           />
-          {teams?.length > 0 && (
-            <div className="row" style={{ flexWrap: 'wrap', gap: 6 }}>
-              {teams
-                .filter((t) => t.join_code)
-                .map((t) => (
-                  <button
-                    type="button"
-                    key={t.id}
-                    className="secondary small"
-                    onClick={() => setCode(t.join_code)}
-                  >
-                    {t.name}
-                  </button>
-                ))}
-            </div>
-          )}
 
           <label className="display small" style={{ marginTop: 6 }}>
             Your name (optional)
