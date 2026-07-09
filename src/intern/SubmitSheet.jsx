@@ -163,7 +163,7 @@ export default function SubmitSheet({ challenge, team, memberName, subs, config,
 }
 
 function bannerFor(s) {
-  if (s._local) return 'info'
+  if (s._local) return s._syncState === 'error' ? 'err' : 'info'
   if (s.status === 'verified') return 'ok'
   if (s.status === 'rejected') return 'err'
   return 'warn'
@@ -171,7 +171,8 @@ function bannerFor(s) {
 
 function statusLine(s) {
   if (s._local) {
-    if (s._syncState === 'error') return '↻ Saved on your phone — retrying upload…'
+    if (s._syncState === 'error')
+      return `↻ Saved on your phone, but the upload keeps failing: ${s._error || 'unknown error'}`
     if (s._syncState === 'uploading') return '⤴ Uploading…'
     return '✓ Saved — waiting to upload'
   }
