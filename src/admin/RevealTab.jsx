@@ -5,7 +5,7 @@ import { evidenceUrl } from '../lib/supabase'
 import MapTab from './MapTab.jsx'
 import { QUEST_COLORS } from './StrategyTab.jsx'
 import { MusicEngine } from './revealMusic'
-import { computeBoots, computeSuperlatives, computeBonuses } from './awards'
+import { computeBoots, computeSuperlatives, computeBonuses, computeRecap } from './awards'
 import './reveal.css'
 
 // 🎉 The big-screen finale. A fullscreen, keynote-style sequence the admin
@@ -79,6 +79,10 @@ export default function RevealTab({
     () => computeBonuses(rows, submissions, challengeMap),
     [rows, submissions, challengeMap],
   )
+  const recap = useMemo(
+    () => computeRecap(teams, submissions, { challengeMap, questMap, config }),
+    [teams, submissions, challengeMap, questMap, config],
+  )
   // Erin's hand-picked awards — multi-select lists (legacy single ids folded in).
   const pickList = (listKey, legacyKey) => {
     const ids = [
@@ -108,7 +112,7 @@ export default function RevealTab({
   // Stage list adapts to team count and which extras exist. With only two
   // teams the podium is skipped entirely — announcing 2nd place would just
   // announce the winner early and deflate the big moment.
-  const STAGES = ['intro', 'reel', 'map', 'fingerprints']
+  const STAGES = ['intro', 'recap', 'map', 'fingerprints']
   if (rows.length >= 3) STAGES.push('third', 'second')
   STAGES.push('drumroll', 'winner', 'bonus')
   if (boots) STAGES.push('boots')
@@ -199,7 +203,7 @@ export default function RevealTab({
         </div>
       )}
 
-      {cur === 'reel' && <Reel photos={photos} />}
+      {cur === 'recap' && <Recap moments={recap} />}
 
       {cur === 'map' && (
         <div className="reveal-stage">
@@ -569,6 +573,55 @@ function Podium({ medal, label, row }) {
   )
 }
 
+// ESPN-style play-by-play: auto-advances through the generated moments once,
+// then holds on the cliffhanger. Each moment remounts (key) so the entrance
+// animation replays like a broadcast graphics package.
+function Recap({ moments }) {
+  const [i, setI] = useState(0)
+  useEffect(() => {
+    if (moments.length < 2) return
+    const t = setInterval(
+      () => setI((x) => (x + 1 >= moments.length ? x : x + 1)),
+      4200,
+    )
+    return () => clearInterval(t)
+  }, [moments.length])
+
+  if (moments.length === 0) {
+    return (
+      <div className="reveal-stage">
+        <div className="reveal-sub">No plays on the tape yet — verify some submissions first!</div>
+      </div>
+    )
+  }
+  const idx = Math.min(i, moments.length - 1)
+  const m = moments[idx]
+  const done = idx >= moments.length - 1
+  return (
+    <div className="reveal-stage" key={idx}>
+      <div className="recap-chip">
+        {m.time} · play {idx + 1}/{moments.length}
+      </div>
+      <h1 className={'reveal-title recap-' + m.type} style={{ fontSize: 'clamp(26px,5.5vw,64px)' }}>
+        {m.head}
+      </h1>
+      <div className="reveal-sub" style={{ fontSize: 'clamp(16px,2.4vw,26px)' }}>{m.sub}</div>
+      {m.photo && (
+        <img
+          className="reveal-photo"
+          style={{ maxHeight: '38vh' }}
+          src={evidenceUrl(m.photo)}
+          alt=""
+        />
+      )}
+      {done && <div className="reveal-sub" style={{ fontSize: 14 }}>end of tape — onward →</div>}
+    </div>
+  )
+}
+
+// (The photo slideshow, currently benched in favor of the play-by-play recap.
+// Swap 'recap' for 'reel' in STAGES to bring it back.)
+// eslint-disable-next-line no-unused-vars
 function Reel({ photos }) {
   const [i, setI] = useState(0)
   // Plays through once and holds on the last slide (no looping repeats).

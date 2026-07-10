@@ -87,6 +87,138 @@ export function computeSuperlatives(teams, submissions) {
   return { earlyBird, buzzer, shutterbugs, creative, mvp }
 }
 
+// ESPN-style play-by-play recap: replays verified submissions chronologically,
+// tracking running scores (caps + hero tiers included) to surface kickoff,
+// first blood, big plays, lead changes, tier unlocks, the bounty, and the
+// admin's 🎞 highlight picks. The tape CUTS OFF ~25 minutes before the end and
+// lands on a cliffhanger so it can never spoil the winner reveal.
+export function computeRecap(teams, submissions, { challengeMap, questMap, config }) {
+  const heroTiers = (config?.heroTiers?.length
+    ? config.heroTiers
+    : [{ quests: 3, bonus: 5 }, { quests: 4, bonus: 10 }, { quests: 5, bonus: 15 }]
+  ).slice().sort((a, b) => a.quests - b.quests)
+  const teamName = new Map(teams.map((t) => [t.id, t.name]))
+  const fmt = (d) => new Date(d).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+
+  const [eh, em] = String(config?.endTime || '16:40').split(':').map(Number)
+  const end = new Date()
+  end.setHours(Number.isFinite(eh) ? eh : 16, Number.isFinite(em) ? em : 40, 0, 0)
+  const cutoff = new Date(end.getTime() - 25 * 60000)
+
+  const chrono = submissions
+    .filter((s) => teamName.has(s.team_id))
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+  const verified = chrono.filter(
+    (s) =>
+      s.status === 'verified' &&
+      challengeMap.get(s.challenge_id) &&
+      new Date(s.created_at) <= cutoff,
+  )
+
+  const moments = []
+  if (chrono.length) {
+    const f = chrono[0]
+    moments.push({
+      ts: +new Date(f.created_at), time: fmt(f.created_at), type: 'kickoff',
+      head: "AND THEY'RE OFF",
+      sub: `${teamName.get(f.team_id)} fires the first submission of the day`,
+    })
+  }
+
+  const state = new Map(teams.map((t) => [t.id, { pts: 0, hero: 0, claims: new Map(), quests: new Set() }]))
+  const total = (st) => st.pts + st.hero
+  let leader = null
+  let bigCount = 0
+
+  verified.forEach((s, idx) => {
+    const c = challengeMap.get(s.challenge_id)
+    const st = state.get(s.team_id)
+    if (!c || !st) return
+    const cap = Math.max(1, Number(c.maxClaims ?? c.max_claims ?? 1))
+    const claimed = st.claims.get(c.id) || 0
+    if (claimed >= cap) return
+    st.claims.set(c.id, claimed + 1)
+    const pts = s.awarded_points != null ? Number(s.awarded_points) || 0 : Number(c.points) || 0
+    st.pts += pts
+    const quest = questMap.get(c.quest)
+    const heroEligible = quest ? quest.heroEligible !== false : c.quest >= 1 && c.quest <= 5
+    if (heroEligible && pts > 0) st.quests.add(c.quest)
+    const prevHero = st.hero
+    st.hero = 0
+    for (const t of heroTiers) if (st.quests.size >= t.quests) st.hero = t.bonus
+
+    const name = teamName.get(s.team_id)
+    const ts = +new Date(s.created_at)
+    const photo = s.evidence_type === 'photo' && s.evidence_path ? s.evidence_path : null
+    if (idx === 0) {
+      moments.push({ ts, time: fmt(s.created_at), type: 'first', head: 'FIRST POINTS ON THE BOARD', sub: `${name} draws first blood (+${pts})`, photo })
+    } else if (c.quest === 0 && pts > (Number(c.points) || 0)) {
+      moments.push({ ts, time: fmt(s.created_at), type: 'bounty', head: '💰 THE BOUNTY IS CLAIMED', sub: `${name} corners the roamers — +${pts}, and the complexion of this hunt just changed`, photo })
+    } else if (pts >= 5 && bigCount < 4) {
+      bigCount++
+      moments.push({ ts, time: fmt(s.created_at), type: 'big', head: `BIG PLAY: +${pts}`, sub: `${name} banks “${c.title}”`, photo })
+    }
+    if (st.hero > prevHero) {
+      moments.push({ ts, time: fmt(s.created_at), type: 'tier', head: `JOURNEY BONUS UNLOCKED: +${st.hero}`, sub: `${name} has now scored in ${st.quests.size} quests — the breadth pays off` })
+    }
+    const standing = [...state.entries()].map(([id, v]) => ({ id, tot: total(v) })).sort((a, b) => b.tot - a.tot)
+    if (standing.length >= 2) {
+      const now = standing[0].tot === standing[1].tot ? 'tie' : standing[0].id
+      if (now !== leader && leader !== null) {
+        moments.push(
+          now === 'tie'
+            ? { ts, time: fmt(s.created_at), type: 'lead', head: 'ALL SQUARE', sub: `Dead level at ${standing[0].tot} apiece` }
+            : { ts, time: fmt(s.created_at), type: 'lead', head: 'LEAD CHANGE', sub: `${teamName.get(now)} snatches the lead, ${standing[0].tot}–${standing[1].tot}` },
+        )
+      }
+      leader = now
+    }
+  })
+
+  // The admin's 🎞 picks become HIGHLIGHT moments (photo + caption only — no
+  // scores, so late picks can't spoil anything). Capped so the tape stays tight.
+  const usedPhotos = new Set(moments.map((m) => m.photo).filter(Boolean))
+  const pickIds = new Set(config?.reelIds || [])
+  let picksAdded = 0
+  for (const s of chrono) {
+    if (picksAdded >= 6) break
+    if (!pickIds.has(s.id) || s.status !== 'verified') continue
+    if (s.evidence_type !== 'photo' || !s.evidence_path || usedPhotos.has(s.evidence_path)) continue
+    const c = challengeMap.get(s.challenge_id)
+    moments.push({
+      ts: +new Date(s.created_at), time: fmt(s.created_at), type: 'photo',
+      head: 'ONE FOR THE HIGHLIGHT REEL',
+      sub: `${teamName.get(s.team_id)}${c ? ` — “${c.title}”` : ''}`,
+      photo: s.evidence_path,
+    })
+    picksAdded++
+  }
+
+  moments.sort((a, b) => a.ts - b.ts)
+
+  // Cliffhanger: standings at the cutoff, then the tape ends.
+  const standing = [...state.entries()].map(([id, v]) => ({ id, tot: total(v) })).sort((a, b) => b.tot - a.tot)
+  if (standing.length >= 2) {
+    const [a, b] = standing
+    const minsLeft = Math.max(1, Math.round((end - cutoff) / 60000))
+    moments.push(
+      a.tot === b.tot
+        ? { ts: +cutoff, time: fmt(cutoff), type: 'cliff', head: 'DEAD. LEVEL.', sub: `${a.tot}–${b.tot} with ${minsLeft} minutes to play… and that’s where the tape ends 🍿` }
+        : { ts: +cutoff, time: fmt(cutoff), type: 'cliff', head: `${(teamName.get(a.id) || '').toUpperCase()} BY ${a.tot - b.tot}`, sub: `${a.tot}–${b.tot} with ${minsLeft} minutes to play… and that’s where the tape ends 🍿` },
+    )
+  }
+
+  // Keep the tape tight: shed extra big plays, then extra highlights.
+  let out = moments
+  for (const shedType of ['big', 'photo']) {
+    while (out.length > 16 && out.some((m) => m.type === shedType)) {
+      const i = out.findIndex((m) => m.type === shedType)
+      out = [...out.slice(0, i), ...out.slice(i + 1)]
+    }
+  }
+  return out
+}
+
 // Bonus round: Hero's Journey tiers reached, roaming claims, LinkedIn reposts.
 export function computeBonuses(rows, submissions, challengeMap) {
   const hero = rows

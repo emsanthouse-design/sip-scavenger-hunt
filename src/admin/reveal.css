@@ -189,6 +189,22 @@
   min-width: min(260px, 80vw);
 }
 
+/* Play-by-play recap */
+.recap-chip {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(12px, 1.5vw, 16px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: #c6d4e0;
+}
+h1.recap-lead { color: var(--freedom-red); }
+h1.recap-bounty, h1.recap-cliff { color: #ffd23f; }
+
 /* Drumroll dots */
 .reveal-dots i {
   font-style: normal;
