@@ -8,6 +8,7 @@ import AdminLogin from './AdminLogin.jsx'
 import SubmissionQueue from './SubmissionQueue.jsx'
 import Leaderboard from './Leaderboard.jsx'
 import ActivityTab from './ActivityTab.jsx'
+import RevealTab from './RevealTab.jsx'
 import Settings from './Settings.jsx'
 import { useMembers } from '../lib/useMembers'
 
@@ -55,6 +56,9 @@ export default function AdminApp() {
         <button className={tab === 'activity' ? 'active' : ''} onClick={() => setTab('activity')}>
           Activity
         </button>
+        <button className={tab === 'reveal' ? 'active' : ''} onClick={() => setTab('reveal')}>
+          🎉 Reveal
+        </button>
         <button className={tab === 'settings' ? 'active' : ''} onClick={() => setTab('settings')}>
           Settings
         </button>
@@ -88,6 +92,15 @@ export default function AdminApp() {
           questMap={questMap}
           members={members}
           onMembersChanged={refreshMembers}
+        />
+      ) : tab === 'reveal' ? (
+        <RevealTab
+          teams={teams}
+          submissions={subs}
+          challengeMap={challengeMap}
+          questMap={questMap}
+          config={config}
+          onExit={() => setTab('queue')}
         />
       ) : (
         <Settings
