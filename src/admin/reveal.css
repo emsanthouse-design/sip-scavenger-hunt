@@ -152,6 +152,43 @@
   background: linear-gradient(90deg, #e0a92e, #ffd23f);
 }
 
+/* Honorable-mention lines + superlative grid */
+.reveal-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(92vw, 820px);
+}
+.reveal-line {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: clamp(12px, 2vw, 20px) clamp(16px, 3vw, 26px);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(15px, 2.2vw, 24px);
+  text-align: left;
+}
+.reveal-line b { color: #ffd23f; }
+.reveal-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  max-width: min(94vw, 1040px);
+}
+.reveal-mini {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: clamp(14px, 2.4vw, 26px) clamp(18px, 3vw, 34px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  min-width: min(260px, 80vw);
+}
+
 /* Controls */
 .reveal-controls {
   display: flex;

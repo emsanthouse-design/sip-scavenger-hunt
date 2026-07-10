@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { getAdminPassword, clearAdminPassword } from '../lib/adminApi'
+import { getAdminPassword, clearAdminPassword, saveConfig } from '../lib/adminApi'
 import { useHuntData } from '../lib/useHuntData'
 import { useAllSubmissions } from '../lib/useAllSubmissions'
 import { buildMaps } from '../lib/scoring'
@@ -29,6 +29,17 @@ export default function AdminApp() {
   if (!authed) return <AdminLogin onOk={() => setAuthed(true)} />
 
   const pendingCount = subs.filter((s) => s.status === 'pending').length
+
+  // Toggle a reveal-show award (Erin's Choice / Funniest Fail) on a submission.
+  async function awardPick(key, id) {
+    const next = { ...config, [key]: config?.[key] === id ? null : id }
+    try {
+      await saveConfig({ config: next })
+      refresh()
+    } catch (e) {
+      alert(e?.message || 'Could not save the pick')
+    }
+  }
 
   return (
     <div className="app">
@@ -75,6 +86,8 @@ export default function AdminApp() {
           challengeMap={challengeMap}
           teamMap={teamMap}
           onChanged={() => {}}
+          config={config}
+          onAward={awardPick}
         />
       ) : tab === 'board' ? (
         <Leaderboard

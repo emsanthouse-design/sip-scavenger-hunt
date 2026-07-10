@@ -4,7 +4,14 @@ import { reviewSubmission } from '../lib/adminApi'
 
 // The live verification queue. Each card shows team, challenge, evidence,
 // timestamp, and verify / reject / partial-credit controls.
-export default function SubmissionQueue({ submissions, challengeMap, teamMap, onChanged }) {
+export default function SubmissionQueue({
+  submissions,
+  challengeMap,
+  teamMap,
+  onChanged,
+  config,
+  onAward,
+}) {
   const [filter, setFilter] = useState('pending')
 
   const counts = {
@@ -46,13 +53,15 @@ export default function SubmissionQueue({ submissions, challengeMap, teamMap, on
           challenge={challengeMap.get(s.challenge_id)}
           team={teamMap.get(s.team_id)}
           onChanged={onChanged}
+          config={config}
+          onAward={onAward}
         />
       ))}
     </div>
   )
 }
 
-function ReviewCard({ submission, challenge, team, onChanged }) {
+function ReviewCard({ submission, challenge, team, onChanged, config, onAward }) {
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState(submission.admin_note || '')
   const [partial, setPartial] = useState(
@@ -141,6 +150,26 @@ function ReviewCard({ submission, challenge, team, onChanged }) {
         value={note}
         onChange={(e) => setNote(e.target.value)}
       />
+
+      {/* Reveal-show award picks: tag favorites the moment you see them. */}
+      {onAward && (
+        <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+          <button
+            className={'small ' + (config?.erinsChoiceId === submission.id ? 'ok' : 'secondary')}
+            disabled={busy}
+            onClick={() => onAward('erinsChoiceId', submission.id)}
+          >
+            🏅 {config?.erinsChoiceId === submission.id ? "Erin's pick ✓" : "Erin's pick"}
+          </button>
+          <button
+            className={'small ' + (config?.funniestFailId === submission.id ? 'danger' : 'secondary')}
+            disabled={busy}
+            onClick={() => onAward('funniestFailId', submission.id)}
+          >
+            🤣 {config?.funniestFailId === submission.id ? 'Funniest fail ✓' : 'Funniest fail'}
+          </button>
+        </div>
+      )}
       {err && <div className="banner err small">{err}</div>}
     </div>
   )

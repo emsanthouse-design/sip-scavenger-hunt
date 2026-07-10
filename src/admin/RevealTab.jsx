@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import L from 'leaflet'
 import { buildLeaderboard } from '../lib/scoring'
 import { evidenceUrl } from '../lib/supabase'
 import MapTab from './MapTab.jsx'
+import { MusicEngine } from './revealMusic'
+import { computeBoots, computeSuperlatives, computeBonuses } from './awards'
 import './reveal.css'
 
 // 🎉 The big-screen finale. A fullscreen, keynote-style sequence the admin
@@ -46,16 +49,58 @@ export default function RevealTab({
   const verifiedCount = submissions.filter((s) => s.status === 'verified').length
   const totalPoints = rows.reduce((a, r) => a + r.score.total, 0)
 
-  // Stage list adapts to how many teams there are (podium places 3rd..2nd).
+  // Honorable mentions (computed) + Erin's hand-picked awards (from config,
+  // tagged on Queue cards).
+  const boots = useMemo(() => computeBoots(teams, submissions), [teams, submissions])
+  const sup = useMemo(() => computeSuperlatives(teams, submissions), [teams, submissions])
+  const bonuses = useMemo(
+    () => computeBonuses(rows, submissions, challengeMap),
+    [rows, submissions, challengeMap],
+  )
+  const erinsSub = submissions.find((s) => s.id === config?.erinsChoiceId) || null
+  const failSub = submissions.find((s) => s.id === config?.funniestFailId) || null
+
+  // Stage list adapts to team count and which extras exist.
   const STAGES = ['intro', 'reel', 'map']
   if (rows.length >= 3) STAGES.push('third')
   if (rows.length >= 2) STAGES.push('second')
-  STAGES.push('winner')
+  STAGES.push('winner', 'bonus')
+  if (boots) STAGES.push('boots')
+  STAGES.push('supers')
+  if (erinsSub) STAGES.push('erins')
+  if (failSub) STAGES.push('fail')
   const cur = STAGES[Math.min(stage, STAGES.length - 1)]
   const last = stage >= STAGES.length - 1
 
   const next = () => setStage((s) => Math.min(s + 1, STAGES.length - 1))
   const back = () => setStage((s) => Math.max(s - 1, 0))
+
+  // --- music ----------------------------------------------------------------
+  const [music, setMusic] = useState(false)
+  const engineRef = useRef(null)
+  const moodFor = (k) =>
+    k === 'third' || k === 'second'
+      ? 'tension'
+      : k === 'winner'
+        ? 'fanfare'
+        : ['bonus', 'boots', 'supers', 'erins', 'fail'].includes(k)
+          ? 'party'
+          : 'groove'
+  useEffect(() => {
+    if (music && engineRef.current) engineRef.current.setMood(moodFor(cur))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cur, music])
+  useEffect(() => () => engineRef.current?.stop(), [])
+  function toggleMusic() {
+    if (!music) {
+      if (!engineRef.current) engineRef.current = new MusicEngine()
+      engineRef.current.start(moodFor(cur))
+      setMusic(true)
+    } else {
+      engineRef.current?.stop()
+      setMusic(false)
+    }
+  }
 
   useEffect(() => {
     const onKey = (e) => {
@@ -162,12 +207,113 @@ export default function RevealTab({
               )
             })}
           </div>
+          {!last && <div className="reveal-sub" style={{ fontSize: 15 }}>…and we’re not done yet →</div>}
         </div>
+      )}
+
+      {cur === 'bonus' && (
+        <div className="reveal-stage">
+          <div className="reveal-kicker">Honorable mentions</div>
+          <h1 className="reveal-title" style={{ fontSize: 'clamp(24px,4.5vw,52px)' }}>
+            The Bonus Round
+          </h1>
+          <div className="reveal-lines">
+            {bonuses.hero.map((h) => (
+              <div className="reveal-line" key={'h' + h.team}>
+                ★ Hero’s Journey — <b>{h.team}</b>: +{h.bonus} ({h.quests}/5 quests)
+              </div>
+            ))}
+            {bonuses.roaming.map((r, i) => (
+              <div className="reveal-line" key={'r' + i}>
+                ✨ Roaming Bonus — <b>{teamName.get(r.teamId) || 'A team'}</b> spotted the
+                roamers at {r.time}
+                {r.who ? ` (nice eyes, ${r.who})` : ''}
+              </div>
+            ))}
+            {[...bonuses.linkedin].map(([id, n]) => (
+              <div className="reveal-line" key={'l' + id}>
+                💼 LinkedIn — <b>{teamName.get(id) || 'A team'}</b>: {n} repost
+                {n === 1 ? '' : 's'} on the City’s feed
+              </div>
+            ))}
+            {bonuses.hero.length + bonuses.roaming.length + bonuses.linkedin.size === 0 && (
+              <div className="reveal-line">No bonus points were claimed… this time. 👀</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {cur === 'boots' && boots && (
+        <div className="reveal-stage">
+          <div className="reveal-kicker">Honorable mentions</div>
+          <h1 className="reveal-title" style={{ fontSize: 'clamp(24px,4.5vw,52px)' }}>
+            👢 These Boots Are Made for Walkin’
+          </h1>
+          <div className="reveal-sub">
+            <b style={{ color: '#ffd23f' }}>{boots.team.name}</b> covered the most ground —{' '}
+            <b>~{boots.miles.toFixed(1)} miles</b> between “{boots.a.label}” and “
+            {boots.b.label}.”
+          </div>
+          <BootsMap boots={boots} />
+        </div>
+      )}
+
+      {cur === 'supers' && (
+        <div className="reveal-stage">
+          <div className="reveal-kicker">Honorable mentions</div>
+          <h1 className="reveal-title" style={{ fontSize: 'clamp(24px,4.5vw,52px)' }}>
+            Superlatives
+          </h1>
+          <div className="reveal-grid">
+            {sup.earlyBird && (
+              <Superlative e="🐦" t="Early Bird" n={sup.earlyBird.team}
+                d={`first submission of the day${sup.earlyBird.who ? ' — ' + sup.earlyBird.who : ''} · ${sup.earlyBird.time}`} />
+            )}
+            {sup.buzzer && (
+              <Superlative e="⏰" t="Buzzer Beater" n={sup.buzzer.team}
+                d={`last points of the day${sup.buzzer.who ? ' — ' + sup.buzzer.who : ''} · ${sup.buzzer.time}`} />
+            )}
+            {sup.shutterbugs && (
+              <Superlative e="📸" t="Shutterbugs" n={sup.shutterbugs.team}
+                d={`${sup.shutterbugs.n} total submissions`} />
+            )}
+            {sup.creative && (
+              <Superlative e="🎭" t="Most Creative Interpretations" n={sup.creative.team}
+                d={`${sup.creative.n} rejected attempt${sup.creative.n === 1 ? '' : 's'} — A for effort`} />
+            )}
+            {sup.mvp && (
+              <Superlative e="🌟" t="MVP" n={sup.mvp.name}
+                d={`${sup.mvp.n} verified submissions${sup.mvp.team ? ' · ' + sup.mvp.team : ''}`} />
+            )}
+          </div>
+        </div>
+      )}
+
+      {cur === 'erins' && erinsSub && (
+        <PickStage
+          kicker="A very prestigious jury of one"
+          title="🏅 Erin’s Choice Award"
+          sub={teamName.get(erinsSub.team_id)}
+          submission={erinsSub}
+          challengeMap={challengeMap}
+        />
+      )}
+      {cur === 'fail' && failSub && (
+        <PickStage
+          kicker="We salute the attempt"
+          title="🤣 Funniest Fail"
+          sub={teamName.get(failSub.team_id)}
+          submission={failSub}
+          challengeMap={challengeMap}
+        />
       )}
 
       <div className="reveal-controls">
         <button className="secondary small" onClick={onExit}>
           Exit
+        </button>
+        <button className="secondary small" onClick={toggleMusic}>
+          {music ? '🔊 Music on' : '🔇 Music off'}
         </button>
         {stage > 0 && (
           <button className="secondary small" onClick={back}>
@@ -182,6 +328,84 @@ export default function RevealTab({
         <span className="hint">arrow keys / space work too</span>
       </div>
     </div>
+  )
+}
+
+function Superlative({ e, t, n, d }) {
+  return (
+    <div className="reveal-mini">
+      <div style={{ fontSize: 'clamp(28px,4vw,52px)' }}>{e}</div>
+      <div className="reveal-kicker" style={{ letterSpacing: '0.1em' }}>{t}</div>
+      <div className="name" style={{
+        fontFamily: 'var(--display)', fontWeight: 800, textTransform: 'uppercase',
+        fontSize: 'clamp(18px,2.6vw,30px)',
+      }}>{n}</div>
+      <div style={{ color: '#c6d4e0', fontSize: 'clamp(12px,1.5vw,16px)' }}>{d}</div>
+    </div>
+  )
+}
+
+// Erin's hand-picked awards: show the actual evidence, big.
+function PickStage({ kicker, title, sub, submission, challengeMap }) {
+  const url = evidenceUrl(submission.evidence_path)
+  const isVideo =
+    submission.evidence_type === 'video' || submission.evidence_type === 'recorded'
+  const challenge = challengeMap.get(submission.challenge_id)
+  return (
+    <div className="reveal-stage">
+      <div className="reveal-kicker">{kicker}</div>
+      <h1 className="reveal-title" style={{ fontSize: 'clamp(24px,4.5vw,52px)' }}>{title}</h1>
+      {url &&
+        (isVideo ? (
+          <video className="reveal-photo" src={url} controls autoPlay playsInline />
+        ) : (
+          <img className="reveal-photo" src={url} alt="" />
+        ))}
+      <div className="reveal-caption">
+        <span className="team">{sub}</span>
+        {challenge ? ` · ${challenge.title}` : ''}
+        {submission.submitted_by ? ` · by ${submission.submitted_by}` : ''}
+      </div>
+      {submission.text_answer && (
+        <div className="reveal-sub">“{submission.text_answer}”</div>
+      )}
+    </div>
+  )
+}
+
+// Mini-map for the walking award: the two farthest-apart completed spots.
+function BootsMap({ boots }) {
+  const el = useRef(null)
+  const mapRef = useRef(null)
+  useEffect(() => {
+    if (!el.current || mapRef.current) return
+    const map = L.map(el.current, {
+      zoomControl: false, dragging: false, scrollWheelZoom: false,
+      doubleClickZoom: false, boxZoom: false, keyboard: false,
+      attributionControl: false,
+    })
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map)
+    const a = [boots.a.lat, boots.a.lng]
+    const b = [boots.b.lat, boots.b.lng]
+    L.polyline([a, b], { color: '#FB4D42', weight: 4, dashArray: '10 10' }).addTo(map)
+    for (const p of [a, b]) {
+      L.circleMarker(p, {
+        radius: 10, color: '#FB4D42', weight: 3,
+        fillColor: '#FB4D42', fillOpacity: 0.9,
+      }).addTo(map)
+    }
+    map.fitBounds([a, b], { padding: [50, 50] })
+    mapRef.current = map
+    return () => {
+      map.remove()
+      mapRef.current = null
+    }
+  }, [boots])
+  return (
+    <div
+      ref={el}
+      style={{ height: '44vh', width: 'min(92vw, 900px)', borderRadius: 14 }}
+    />
   )
 }
 
