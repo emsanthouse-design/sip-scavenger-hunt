@@ -7,6 +7,7 @@ import InternApp from './intern/InternApp.jsx'
 // code-split so intern phones on cellular never download any of it.
 const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
 const WatchApp = lazy(() => import('./admin/WatchApp.jsx'))
+const ReplayApp = lazy(() => import('./admin/ReplayApp.jsx'))
 
 export default function App() {
   const [path] = useRoute()
@@ -26,6 +27,13 @@ export default function App() {
     return (
       <Suspense fallback={<div className="app pad center muted">Loading…</div>}>
         <WatchApp />
+      </Suspense>
+    )
+  }
+  if (path.startsWith('/replay')) {
+    return (
+      <Suspense fallback={<div className="app pad center muted">Loading…</div>}>
+        <ReplayApp />
       </Suspense>
     )
   }

@@ -482,9 +482,11 @@ export default function RevealTab({
       )}
 
       <div className="reveal-controls">
-        <button className="secondary small" onClick={onExit}>
-          Exit
-        </button>
+        {onExit && (
+          <button className="secondary small" onClick={onExit}>
+            Exit
+          </button>
+        )}
         <button className="secondary small" onClick={toggleMusic}>
           {music ? '🔊 Music on' : '🔇 Music off'}
         </button>
