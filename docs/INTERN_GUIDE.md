@@ -14,7 +14,7 @@ one tap away.
 
 **2. Join your team**
 - Type your **team code** (it's in your printed packet).
-- Add your name (optional, but it helps the admin know who submitted).
+- Type your name (required — it shows on your team's roster).
 - Tap **Join team**. Your phone remembers it — you only do this once.
 
 > **The golden rule:** Use your **printed packet** to find and solve challenges.
