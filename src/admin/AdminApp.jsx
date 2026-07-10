@@ -30,19 +30,20 @@ export default function AdminApp() {
 
   const pendingCount = subs.filter((s) => s.status === 'pending').length
 
-  // Toggle a reveal-show pick on a submission. Single-value keys (Erin's
-  // Choice / Funniest Fail) toggle in place; 'reelIds' is a multi-select list
-  // of photos hand-picked for the highlight slideshow.
+  // Toggle a reveal-show pick on a submission. All pick keys are multi-select
+  // lists. Legacy single-value keys (erinsChoiceId / funniestFailId, from
+  // before these went multi) are folded into the list on first touch.
   async function awardPick(key, id) {
-    let next
-    if (key === 'reelIds') {
-      const cur = config?.reelIds || []
-      next = {
-        ...config,
-        reelIds: cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
-      }
-    } else {
-      next = { ...config, [key]: config?.[key] === id ? null : id }
+    const LEGACY = { erinsChoiceIds: 'erinsChoiceId', funniestFailIds: 'funniestFailId' }
+    const legacyKey = LEGACY[key]
+    const legacyVal = legacyKey ? config?.[legacyKey] : null
+    const cur = [...(config?.[key] || []), ...(legacyVal ? [legacyVal] : [])].filter(
+      (v, i, a) => a.indexOf(v) === i,
+    )
+    const next = {
+      ...config,
+      ...(legacyKey ? { [legacyKey]: null } : {}),
+      [key]: cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
     }
     try {
       await saveConfig({ config: next })

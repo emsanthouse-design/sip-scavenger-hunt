@@ -151,22 +151,28 @@ function ReviewCard({ submission, challenge, team, onChanged, config, onAward })
         onChange={(e) => setNote(e.target.value)}
       />
 
-      {/* Reveal-show award picks: tag favorites the moment you see them. */}
-      {onAward && (
+      {/* Reveal-show award picks: tag favorites the moment you see them.
+          All are multi-select; legacy single picks still light up. */}
+      {onAward && (() => {
+        const inList = (key, legacyKey) =>
+          (config?.[key] || []).includes(submission.id) || config?.[legacyKey] === submission.id
+        const isChoice = inList('erinsChoiceIds', 'erinsChoiceId')
+        const isFail = inList('funniestFailIds', 'funniestFailId')
+        return (
         <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           <button
-            className={'small ' + (config?.erinsChoiceId === submission.id ? 'ok' : 'secondary')}
+            className={'small ' + (isChoice ? 'ok' : 'secondary')}
             disabled={busy}
-            onClick={() => onAward('erinsChoiceId', submission.id)}
+            onClick={() => onAward('erinsChoiceIds', submission.id)}
           >
-            🏅 {config?.erinsChoiceId === submission.id ? "Erin's pick ✓" : "Erin's pick"}
+            🏅 {isChoice ? "Erin's pick ✓" : "Erin's pick"}
           </button>
           <button
-            className={'small ' + (config?.funniestFailId === submission.id ? 'danger' : 'secondary')}
+            className={'small ' + (isFail ? 'danger' : 'secondary')}
             disabled={busy}
-            onClick={() => onAward('funniestFailId', submission.id)}
+            onClick={() => onAward('funniestFailIds', submission.id)}
           >
-            🤣 {config?.funniestFailId === submission.id ? 'Funniest fail ✓' : 'Funniest fail'}
+            🤣 {isFail ? 'Funniest fail ✓' : 'Funniest fail'}
           </button>
           {submission.evidence_type === 'photo' && submission.evidence_path && (
             <button
@@ -178,7 +184,8 @@ function ReviewCard({ submission, challenge, team, onChanged, config, onAward })
             </button>
           )}
         </div>
-      )}
+        )
+      })()}
       {err && <div className="banner err small">{err}</div>}
     </div>
   )

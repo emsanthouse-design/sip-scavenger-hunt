@@ -69,8 +69,18 @@ export default function RevealTab({
     () => computeBonuses(rows, submissions, challengeMap),
     [rows, submissions, challengeMap],
   )
-  const erinsSub = submissions.find((s) => s.id === config?.erinsChoiceId) || null
-  const failSub = submissions.find((s) => s.id === config?.funniestFailId) || null
+  // Erin's hand-picked awards — multi-select lists (legacy single ids folded in).
+  const pickList = (listKey, legacyKey) => {
+    const ids = [
+      ...(config?.[listKey] || []),
+      ...(config?.[legacyKey] ? [config[legacyKey]] : []),
+    ]
+    return [...new Set(ids)]
+      .map((id) => submissions.find((s) => s.id === id))
+      .filter(Boolean)
+  }
+  const erinsSubs = pickList('erinsChoiceIds', 'erinsChoiceId')
+  const failSubs = pickList('funniestFailIds', 'funniestFailId')
 
   // Stage list adapts to team count and which extras exist.
   const STAGES = ['intro', 'reel', 'map']
@@ -79,8 +89,8 @@ export default function RevealTab({
   STAGES.push('winner', 'bonus')
   if (boots) STAGES.push('boots')
   STAGES.push('supers')
-  if (erinsSub) STAGES.push('erins')
-  if (failSub) STAGES.push('fail')
+  erinsSubs.forEach((_, i) => STAGES.push('erins-' + i))
+  failSubs.forEach((_, i) => STAGES.push('fail-' + i))
   const cur = STAGES[Math.min(stage, STAGES.length - 1)]
   const last = stage >= STAGES.length - 1
 
@@ -95,7 +105,9 @@ export default function RevealTab({
       ? 'tension'
       : k === 'winner'
         ? 'fanfare'
-        : ['bonus', 'boots', 'supers', 'erins', 'fail'].includes(k)
+        : ['bonus', 'boots', 'supers'].includes(k) ||
+            k.startsWith('erins-') ||
+            k.startsWith('fail-')
           ? 'party'
           : 'groove'
   useEffect(() => {
@@ -301,21 +313,27 @@ export default function RevealTab({
         </div>
       )}
 
-      {cur === 'erins' && erinsSub && (
+      {cur.startsWith('erins-') && erinsSubs[+cur.split('-')[1]] && (
         <PickStage
           kicker="A very prestigious jury of one"
-          title="🏅 Erin’s Choice Award"
-          sub={teamName.get(erinsSub.team_id)}
-          submission={erinsSub}
+          title={
+            '🏅 Erin’s Choice Award' +
+            (erinsSubs.length > 1 ? ` · ${+cur.split('-')[1] + 1} of ${erinsSubs.length}` : '')
+          }
+          sub={teamName.get(erinsSubs[+cur.split('-')[1]].team_id)}
+          submission={erinsSubs[+cur.split('-')[1]]}
           challengeMap={challengeMap}
         />
       )}
-      {cur === 'fail' && failSub && (
+      {cur.startsWith('fail-') && failSubs[+cur.split('-')[1]] && (
         <PickStage
           kicker="We salute the attempt"
-          title="🤣 Funniest Fail"
-          sub={teamName.get(failSub.team_id)}
-          submission={failSub}
+          title={
+            '🤣 Funniest Fail' +
+            (failSubs.length > 1 ? ` · ${+cur.split('-')[1] + 1} of ${failSubs.length}` : '')
+          }
+          sub={teamName.get(failSubs[+cur.split('-')[1]].team_id)}
+          submission={failSubs[+cur.split('-')[1]]}
           challengeMap={challengeMap}
         />
       )}
