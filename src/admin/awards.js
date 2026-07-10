@@ -129,6 +129,8 @@ export function computeRecap(teams, submissions, { challengeMap, questMap, confi
   const total = (st) => st.pts + st.hero
   let leader = null
   let bigCount = 0
+  // Running-score snapshots so every moment can carry a live scoreboard.
+  const snapshots = []
 
   verified.forEach((s, idx) => {
     const c = challengeMap.get(s.challenge_id)
@@ -174,6 +176,7 @@ export function computeRecap(teams, submissions, { challengeMap, questMap, confi
       }
       leader = now
     }
+    snapshots.push({ ts, scores: teams.map((t) => ({ id: t.id, tot: total(state.get(t.id)) })) })
   })
 
   // HIGHLIGHT moments (photo + caption only — no scores, so nothing spoils):
@@ -217,16 +220,43 @@ export function computeRecap(teams, submissions, { challengeMap, questMap, confi
 
   moments.sort((a, b) => a.ts - b.ts)
 
-  // Cliffhanger: standings at the cutoff, then the tape ends.
-  const standing = [...state.entries()].map(([id, v]) => ({ id, tot: total(v) })).sort((a, b) => b.tot - a.tot)
-  if (standing.length >= 2) {
-    const [a, b] = standing
-    const minsLeft = Math.max(1, Math.round((end - cutoff) / 60000))
-    moments.push(
-      a.tot === b.tot
-        ? { ts: +cutoff, time: fmt(cutoff), type: 'cliff', head: 'DEAD. LEVEL.', sub: `${a.tot}–${b.tot} with ${minsLeft} minutes to play… and that’s where the tape ends 🍿` }
-        : { ts: +cutoff, time: fmt(cutoff), type: 'cliff', head: `${(teamName.get(a.id) || '').toUpperCase()} BY ${a.tot - b.tot}`, sub: `${a.tot}–${b.tot} with ${minsLeft} minutes to play… and that’s where the tape ends 🍿` },
-    )
+  // Attach a running-scoreboard snapshot to every moment — but the board
+  // "goes dark" (scores: null → the UI shows ??) for the final stretch of the
+  // tape, so the late-game numbers can’t give away the ending.
+  const darkFrom = end.getTime() - 35 * 60000
+  const zero = teams.map((t) => ({ id: t.id, tot: 0 }))
+  for (const m of moments) {
+    if (m.ts >= darkFrom) {
+      m.scores = null
+      continue
+    }
+    let sc = zero
+    for (const snap of snapshots) {
+      if (snap.ts <= m.ts) sc = snap.scores
+      else break
+    }
+    m.scores = sc
+  }
+
+  // Cliffhanger: deliberately cryptic — no standings, just the last accepted
+  // play of the day, then the tape cuts out.
+  const lastV = [...chrono]
+    .reverse()
+    .find((s) => s.status === ‘verified’ && challengeMap.get(s.challenge_id))
+  if (lastV) {
+    const lc = challengeMap.get(lastV.challenge_id)
+    const lpts =
+      lastV.awarded_points != null
+        ? Number(lastV.awarded_points) || 0
+        : Number(lc?.points) || 0
+    moments.push({
+      ts: Number.MAX_SAFE_INTEGER,
+      time: fmt(lastV.created_at),
+      type: ‘cliff’,
+      head: ‘THE TAPE CUTS OUT’,
+      sub: `The final submission of the day was accepted at ${fmt(lastV.created_at)}, worth ${lpts} point${lpts === 1 ? ‘’ : ‘s’}… and that’s where we leave it 🍿`,
+      scores: null,
+    })
   }
 
   // Keep the tape tight: shed extra big plays, then extra highlights.

@@ -205,6 +205,82 @@
 h1.recap-lead { color: var(--freedom-red); }
 h1.recap-bounty, h1.recap-cliff { color: #ffd23f; }
 
+/* Score race */
+.recap-score {
+  position: relative;
+  width: min(92vw, 680px);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+.recap-score .rrow { display: flex; align-items: center; gap: 10px; }
+.recap-score .rname {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: clamp(11px, 1.4vw, 14px);
+  width: 74px;
+  text-align: left;
+  flex-shrink: 0;
+}
+.recap-score .rtrack {
+  flex: 1;
+  height: 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.recap-score .rfill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.recap-score .rnum {
+  font-family: var(--display);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  width: 38px;
+  text-align: right;
+  font-size: clamp(14px, 1.9vw, 21px);
+}
+.recap-score .rflag {
+  position: absolute;
+  top: -11px;
+  right: 14px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: var(--freedom-red);
+  color: #fff;
+  animation: rpulse 1s infinite;
+}
+.recap-score.mystery .rflag { background: #3a4a58; }
+.recap-score.hot { animation: rglow 1.2s infinite; }
+.recap-score.mystery .rfill { animation: rmyst 1.4s infinite; }
+@keyframes rglow {
+  0%, 100% { box-shadow: 0 0 0 rgba(251, 77, 66, 0); }
+  50% { box-shadow: 0 0 26px rgba(251, 77, 66, 0.45); }
+}
+@keyframes rpulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.09); }
+}
+@keyframes rmyst {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recap-score.hot, .recap-score .rflag, .recap-score.mystery .rfill { animation: none; }
+}
+
 /* Drumroll dots */
 .reveal-dots i {
   font-style: normal;

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import { buildLeaderboard, pointsByQuest } from '../lib/scoring'
 import { evidenceUrl } from '../lib/supabase'
-import MapTab from './MapTab.jsx'
+import MapTab, { TEAM_COLORS } from './MapTab.jsx'
 import { QUEST_COLORS } from './StrategyTab.jsx'
 import { MusicEngine } from './revealMusic'
 import { computeBoots, computeSuperlatives, computeBonuses, computeRecap } from './awards'
@@ -112,7 +112,7 @@ export default function RevealTab({
   // Stage list adapts to team count and which extras exist. With only two
   // teams the podium is skipped entirely — announcing 2nd place would just
   // announce the winner early and deflate the big moment.
-  const STAGES = ['intro', 'recap', 'map', 'fingerprints']
+  const STAGES = ['intro', 'rules', 'recap', 'map', 'fingerprints']
   if (rows.length >= 3) STAGES.push('third', 'second')
   STAGES.push('drumroll', 'winner', 'bonus')
   if (boots) STAGES.push('boots')
@@ -218,9 +218,45 @@ export default function RevealTab({
         </div>
       )}
 
+      {cur === 'rules' && (
+        <div className="reveal-stage">
+          <div className="reveal-kicker">First — the 60-second setup</div>
+          <h1 className="reveal-title" style={{ fontSize: 'clamp(24px,4.5vw,52px)' }}>
+            The Game
+          </h1>
+          <div className="reveal-lines">
+            <div className="reveal-line">
+              🗓 <b>July 10, 2026.</b> City of Boston summer interns traded their
+              desks for the streets — {teams.length} teams, one afternoon,
+              downtown Boston, on foot.
+            </div>
+            <div className="reveal-line">
+              🎯 <b>Dozens of challenges across 5 quests</b> — riddle trails,
+              photo missions, video productions, museum deep-dives. Proof or it
+              didn’t happen: photo/video evidence, 2+ teammates in frame.
+            </div>
+            <div className="reveal-line">
+              🧠 <b>The strategy:</b> go deep on big five-point visits, or go
+              wide on quick one-pointers — and scoring in more quests unlocks
+              bonus points (+5 / +10 / +15).
+            </div>
+            <div className="reveal-line">
+              🕵️ <b>HQ verified everything live.</b> No points until the
+              evidence passed inspection.
+            </div>
+            <div className="reveal-line">
+              ✨ <b>Wildcards:</b> a bonus for catching the two roaming
+              organizers on camera — and a mid-game flash bounty that changed
+              everything.
+            </div>
+          </div>
+        </div>
+      )}
+
       {cur === 'recap' && (
         <Recap
           moments={recap}
+          teams={teams}
           idx={recapIdx}
           onPrev={() => setRecapIdx((x) => Math.max(0, x - 1))}
           onNext={() => setRecapIdx((x) => Math.min(recap.length - 1, x + 1))}
@@ -601,7 +637,7 @@ function Podium({ medal, label, row }) {
 // Next button) step through the plays at whatever pace the room wants. Each
 // moment remounts (key) so the entrance animation replays like a broadcast
 // graphics package.
-function Recap({ moments, idx: rawIdx, onPrev, onNext }) {
+function Recap({ moments, teams, idx: rawIdx, onPrev, onNext }) {
   if (moments.length === 0) {
     return (
       <div className="reveal-stage">
@@ -613,6 +649,19 @@ function Recap({ moments, idx: rawIdx, onPrev, onNext }) {
   const m = moments[idx]
   const nxt = moments[Math.min(idx + 1, moments.length - 1)]
   const done = idx >= moments.length - 1
+
+  // Score race: bars scale against the biggest total the tape ever shows, so
+  // they visibly grow all game. scores === null → the board is sealed (🤫).
+  const maxTot = Math.max(
+    1,
+    ...moments.flatMap((x) => (x.scores || []).map((s) => s.tot)),
+  )
+  const scores = m.scores
+  const tots = teams.map((t) => scores?.find((s) => s.id === t.id)?.tot ?? 0)
+  const sorted = [...tots].sort((a, b) => b - a)
+  const tied = scores && sorted[0] > 0 && sorted[0] === sorted[1]
+  const close = scores && !tied && sorted[0] - sorted[1] <= 2 && sorted[1] > 0
+
   return (
     <div className="reveal-stage" key={idx}>
       <div className="recap-chip">
@@ -625,13 +674,38 @@ function Recap({ moments, idx: rawIdx, onPrev, onNext }) {
       {m.photo && (
         <img
           className="reveal-photo"
-          style={{ maxHeight: '38vh' }}
+          style={{ maxHeight: '34vh' }}
           src={evidenceUrl(m.photo)}
           alt=""
         />
       )}
       {/* preload the next play's photo so it slams in clean */}
       {!done && nxt.photo && <img src={evidenceUrl(nxt.photo)} alt="" style={{ display: 'none' }} />}
+
+      <div className={'recap-score' + (scores == null ? ' mystery' : close || tied ? ' hot' : '')}>
+        {(tied || close || scores == null) && (
+          <div className="rflag">{scores == null ? '🤫 SEALED' : tied ? 'ALL TIED' : 'NECK AND NECK'}</div>
+        )}
+        {teams.map((t, i) => {
+          const tot = scores?.find((s) => s.id === t.id)?.tot
+          return (
+            <div className="rrow" key={t.id}>
+              <span className="rname">{t.name}</span>
+              <div className="rtrack">
+                <div
+                  className="rfill"
+                  style={{
+                    width: scores ? (tot / maxTot) * 100 + '%' : '50%',
+                    background: TEAM_COLORS[i % TEAM_COLORS.length],
+                  }}
+                />
+              </div>
+              <span className="rnum">{scores ? tot : '??'}</span>
+            </div>
+          )
+        })}
+      </div>
+
       <div className="row" style={{ gap: 12 }}>
         <button className="secondary" onClick={onPrev} disabled={idx === 0} aria-label="Previous play">
           ‹
