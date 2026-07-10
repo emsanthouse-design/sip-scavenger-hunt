@@ -467,6 +467,114 @@ textarea {
   font-size: 26px;
 }
 
+/* --- Visual leaderboard (bar race) --- */
+.lb-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.lb-bar-track {
+  height: 24px;
+  border-radius: 999px;
+  background: var(--light-gray);
+  overflow: hidden;
+  display: flex;
+  margin-top: 8px;
+}
+.lb-bar-v {
+  background: var(--optimistic-blue);
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lb-bar-p {
+  background: repeating-linear-gradient(
+    -45deg,
+    #a9c9e8 0 8px,
+    #c2d9ef 8px 16px
+  );
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lb-bar-track.leader .lb-bar-v {
+  background: linear-gradient(90deg, var(--optimistic-blue), #2b8fe0);
+}
+.lb-legend {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  font-family: var(--display);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--body-gray);
+  margin: 4px 2px 12px;
+}
+.lb-legend .swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+
+/* --- Countdown strip --- */
+.countdown {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--charles-blue);
+}
+.countdown .track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--light-gray);
+  overflow: hidden;
+}
+.countdown .fill {
+  height: 100%;
+  background: var(--optimistic-blue);
+  transition: width 5s linear;
+}
+.countdown.warn {
+  color: var(--freedom-red);
+}
+.countdown.warn .fill {
+  background: var(--freedom-red);
+}
+
+/* --- Roster --- */
+.roster-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid #eef1f4;
+}
+.roster-member:first-of-type {
+  border-top: none;
+}
+.roster-count {
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--light-gray);
+  color: var(--charles-blue);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
 .maxw {
   max-width: var(--maxw);
   margin: 0 auto;

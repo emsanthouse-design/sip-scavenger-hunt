@@ -125,6 +125,10 @@ export const CONFIG = {
   // Every photo/video must include at least two team members. This is a
   // verification criterion the admin eyeballs; surfaced as a reminder.
   minTeammatesInShot: 2,
+  // Event window (local Boston time, HH:MM). Drives the intern countdown strip
+  // and the halfway / 30-minutes-left alerts. Editable in Admin → Settings.
+  startTime: '13:30',
+  endTime: '16:40',
 }
 
 // Seed teams. Join codes are short + memorable; admin can rename/add in Settings.

@@ -19,6 +19,10 @@ export default function JoinTeam({ teams, onJoin }) {
       setErr('Hmm, that team code didn’t match. Double-check with your facilitator.')
       return
     }
+    if (!name.trim()) {
+      setErr('Add your name so your team and the admin know who submitted.')
+      return
+    }
     join(team, name.trim())
   }
 
@@ -52,12 +56,13 @@ export default function JoinTeam({ teams, onJoin }) {
           />
 
           <label className="display small" style={{ marginTop: 6 }}>
-            Your name (optional)
+            Your name
           </label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="So the admin knows who submitted"
+            placeholder="First and last name"
+            autoComplete="name"
           />
 
           {noTeams && (

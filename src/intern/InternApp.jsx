@@ -1,16 +1,34 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useHuntData } from '../lib/useHuntData'
 import { useTeamSubmissions } from '../lib/useTeamSubmissions'
 import { buildMaps, scoreTeam } from '../lib/scoring'
 import { pendingSyncCount } from '../lib/outbox'
+import { registerMember } from '../lib/data'
 import JoinTeam from './JoinTeam.jsx'
 import ScoreHeader from './ScoreHeader.jsx'
 import ChallengeCard from './ChallengeCard.jsx'
 import SubmitSheet from './SubmitSheet.jsx'
+import Countdown from './Countdown.jsx'
 import { useOnline } from '../lib/useOnline'
 
 const TEAM_KEY = 'sip-team'
 const NAME_KEY = 'sip-name'
+const DEVICE_KEY = 'sip-device'
+
+// Stable per-device id so the roster keeps one row per phone (a rejoin moves
+// the row instead of duplicating it).
+function deviceId() {
+  try {
+    let id = localStorage.getItem(DEVICE_KEY)
+    if (!id) {
+      id = 'd_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+      localStorage.setItem(DEVICE_KEY, id)
+    }
+    return id
+  } catch {
+    return 'd_anon'
+  }
+}
 
 // A real Supabase team id is a 36-char UUID. Anything shorter (e.g. the old
 // "HUB" placeholder saved while the DB was unreachable) can't file submissions,
@@ -55,7 +73,18 @@ export default function InternApp() {
     localStorage.setItem(TEAM_KEY, JSON.stringify(t))
     localStorage.setItem(NAME_KEY, name || '')
     setSaved({ team: t, name: name || '' })
+    // Explicit join: write the typed name to the roster (force overwrites).
+    registerMember({ clientId: deviceId(), teamId: t.id, name, force: true })
   }
+
+  // Self-heal the roster on boot (creates a missing row only — an admin rename
+  // in the roster is never overwritten by this).
+  useEffect(() => {
+    if (team?.id) {
+      registerMember({ clientId: deviceId(), teamId: team.id, name: saved.name || 'Unknown' })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [team?.id])
   function leave() {
     localStorage.removeItem(TEAM_KEY)
     setSaved({ team: null, name: '' })
@@ -90,6 +119,8 @@ export default function InternApp() {
       )}
 
       <div className="pad">
+        <Countdown config={config} />
+
         <div className="banner info" style={{ marginBottom: 4 }}>
           🗺 Use your printed packet to find and solve each challenge. Come here to
           check it off and upload your photo/video proof. The numbers below match

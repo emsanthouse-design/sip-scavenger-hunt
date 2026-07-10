@@ -85,5 +85,18 @@ export default async function handler(req) {
     }
   }
 
+  // Rename roster members (id -> new name). Admin edits stick: the intern app
+  // only self-heals missing rows, it never overwrites an existing name.
+  if (Array.isArray(payload.members)) {
+    for (const m of payload.members) {
+      if (!m.id || !m.name) continue
+      const { error } = await db
+        .from('team_members')
+        .update({ name: String(m.name).slice(0, 80) })
+        .eq('id', m.id)
+      if (error) return json({ error: 'members: ' + error.message }, 500)
+    }
+  }
+
   return json({ ok: true })
 }

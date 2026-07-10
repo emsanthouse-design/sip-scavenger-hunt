@@ -60,6 +60,45 @@ export async function loadQuests() {
   return QUESTS
 }
 
+// Team roster: who has joined which team. One row per device (client_id), so a
+// rejoin moves the row instead of duplicating it.
+export async function loadMembers() {
+  if (!isConfigured) return []
+  const { data, error } = await supabase
+    .from('team_members')
+    .select('*')
+    .order('created_at', { ascending: true })
+  if (error) return []
+  return data || []
+}
+
+// Register this device's member row. force=true (an explicit join) writes the
+// typed name; force=false (app boot self-heal) only creates a missing row and
+// never overwrites — so an admin rename in the roster sticks.
+export async function registerMember({ clientId, teamId, name, force = false }) {
+  if (!isConfigured || !clientId || !teamId) return
+  try {
+    if (force) {
+      await supabase
+        .from('team_members')
+        .upsert({ client_id: clientId, team_id: teamId, name }, { onConflict: 'client_id' })
+      return
+    }
+    const { data } = await supabase
+      .from('team_members')
+      .select('id, team_id')
+      .eq('client_id', clientId)
+      .maybeSingle()
+    if (!data) {
+      await supabase.from('team_members').insert({ client_id: clientId, team_id: teamId, name })
+    } else if (data.team_id !== teamId) {
+      await supabase.from('team_members').update({ team_id: teamId }).eq('client_id', clientId)
+    }
+  } catch {
+    /* roster is best-effort; never block the hunt on it */
+  }
+}
+
 // All submissions (admin) or one team's submissions (intern view).
 export async function loadSubmissions({ teamId } = {}) {
   if (!isConfigured) return []

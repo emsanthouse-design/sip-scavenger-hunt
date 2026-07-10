@@ -10,6 +10,8 @@ export default function Settings({ challenges, config, teams, onSaved }) {
     (config?.heroTiers || []).map((t) => ({ ...t })),
   )
   const [roaming, setRoaming] = useState(config?.roamingBonus ?? 3)
+  const [startTime, setStartTime] = useState(config?.startTime || '13:30')
+  const [endTime, setEndTime] = useState(config?.endTime || '16:40')
   const [teamRows, setTeamRows] = useState(() => teams.map((t) => ({ ...t })))
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState(null)
@@ -26,6 +28,8 @@ export default function Settings({ challenges, config, teams, onSaved }) {
         ...config,
         heroTiers: tiers.map((t) => ({ quests: Number(t.quests), bonus: Number(t.bonus) })),
         roamingBonus: Number(roaming),
+        startTime: startTime || '13:30',
+        endTime: endTime || '16:40',
       }
       // Keep the roaming-bonus challenge's points in sync with the config value.
       const outRows = rows.map((r) =>
@@ -86,6 +90,33 @@ export default function Settings({ challenges, config, teams, onSaved }) {
             onChange={(e) => setRoaming(e.target.value.replace(/[^\d]/g, ''))}
           />
         </div>
+      </div>
+
+      {/* Event window: drives the intern countdown + halfway/30-min alerts */}
+      <div className="card stack">
+        <h3>Event times</h3>
+        <div className="row" style={{ gap: 8 }}>
+          <span className="muted small" style={{ width: 70 }}>Start</span>
+          <input
+            type="time"
+            style={{ maxWidth: 140 }}
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+          />
+        </div>
+        <div className="row" style={{ gap: 8 }}>
+          <span className="muted small" style={{ width: 70 }}>Back by</span>
+          <input
+            type="time"
+            style={{ maxWidth: 140 }}
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
+        </div>
+        <p className="muted small" style={{ margin: 0 }}>
+          Drives the countdown on intern phones and the automatic halfway /
+          30-minutes-left alerts.
+        </p>
       </div>
 
       {/* Teams */}

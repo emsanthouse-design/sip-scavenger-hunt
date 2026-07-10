@@ -62,6 +62,16 @@ create table if not exists public.config (
   value jsonb not null
 );
 
+-- Roster: who joined which team. One row per device (client_id) so a rejoin
+-- moves the row instead of duplicating. Admin can rename via admin-config.
+create table if not exists public.team_members (
+  id         uuid primary key default gen_random_uuid(),
+  client_id  text unique,
+  team_id    uuid not null references public.teams(id) on delete cascade,
+  name       text not null,
+  created_at timestamptz not null default now()
+);
+
 -- --- Realtime --------------------------------------------------------------
 -- Let the admin dashboard receive live submission inserts/updates.
 alter publication supabase_realtime add table public.submissions;
@@ -91,6 +101,16 @@ create policy "read submissions" on public.submissions for select using (true);
 drop policy if exists "insert submissions" on public.submissions;
 create policy "insert submissions" on public.submissions
   for insert with check (status = 'pending');
+
+-- Roster: readable + writable by anyone (it's just names for the join list —
+-- scores never depend on it; verification stays service-role-only).
+alter table public.team_members enable row level security;
+drop policy if exists "read members" on public.team_members;
+create policy "read members" on public.team_members for select using (true);
+drop policy if exists "insert members" on public.team_members;
+create policy "insert members" on public.team_members for insert with check (true);
+drop policy if exists "update members" on public.team_members;
+create policy "update members" on public.team_members for update using (true);
 
 -- --- Storage: evidence bucket (public read, anon upload) --------------------
 insert into storage.buckets (id, name, public)
