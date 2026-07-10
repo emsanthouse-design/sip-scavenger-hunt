@@ -96,15 +96,17 @@ export default function RevealTab({
     })
   }, [teams, submissions, challengeMap])
 
-  // Stage list adapts to team count and which extras exist.
+  // Stage list adapts to team count and which extras exist. With only two
+  // teams the podium is skipped entirely — announcing 2nd place would just
+  // announce the winner early and deflate the big moment.
   const STAGES = ['intro', 'reel', 'map', 'fingerprints']
-  if (rows.length >= 3) STAGES.push('third')
-  if (rows.length >= 2) STAGES.push('second')
+  if (rows.length >= 3) STAGES.push('third', 'second')
   STAGES.push('winner', 'bonus')
   if (boots) STAGES.push('boots')
   STAGES.push('supers')
   erinsSubs.forEach((_, i) => STAGES.push('erins-' + i))
   failSubs.forEach((_, i) => STAGES.push('fail-' + i))
+  STAGES.push('finale')
   const cur = STAGES[Math.min(stage, STAGES.length - 1)]
   const last = stage >= STAGES.length - 1
 
@@ -119,7 +121,7 @@ export default function RevealTab({
       ? 'tension'
       : k === 'winner'
         ? 'fanfare'
-        : ['bonus', 'boots', 'supers'].includes(k) ||
+        : ['bonus', 'boots', 'supers', 'finale'].includes(k) ||
             k.startsWith('erins-') ||
             k.startsWith('fail-')
           ? 'party'
@@ -160,7 +162,7 @@ export default function RevealTab({
 
   return (
     <div className="reveal-overlay">
-      <Confetti active={cur === 'winner'} />
+      <Confetti active={cur === 'winner' || cur === 'finale'} />
 
       {cur === 'intro' && (
         <div className="reveal-stage">
@@ -399,6 +401,37 @@ export default function RevealTab({
           submission={failSubs[+cur.split('-')[1]]}
           challengeMap={challengeMap}
         />
+      )}
+
+      {cur === 'finale' && (
+        <div className="reveal-stage">
+          <div className="reveal-kicker">That’s a wrap</div>
+          <h1 className="reveal-title">
+            Congratulations,
+            <br />
+            <span className="red">{winners.map((w) => w.team.name).join(' & ')}!</span>
+          </h1>
+          {rows.length > winners.length && (
+            <div className="reveal-sub" style={{ fontSize: 'clamp(17px,2.4vw,26px)' }}>
+              And a huge thank-you to{' '}
+              <b style={{ color: '#ffd23f' }}>
+                {rows
+                  .filter((r) => !winners.includes(r))
+                  .map((r) => r.team.name)
+                  .join(' & ')}
+              </b>{' '}
+              — you made this a real race, right down to the wire.
+            </div>
+          )}
+          <div className="reveal-sub">
+            One afternoon. {verifiedCount} verified submissions, {totalPoints} points,
+            and a whole city explored — together. You represented Boston beautifully
+            today. 💙
+          </div>
+          <div className="reveal-sub" style={{ fontFamily: 'var(--display)', fontWeight: 700 }}>
+            Now go celebrate — you earned it. 🎉
+          </div>
+        </div>
       )}
 
       <div className="reveal-controls">
