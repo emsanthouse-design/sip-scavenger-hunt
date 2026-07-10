@@ -178,7 +178,9 @@ function statusLine(s) {
   }
   if (s.status === 'verified') {
     const pts = s.awarded_points != null ? ` (+${s.awarded_points})` : ''
-    return `✓ Verified${pts}`
+    // Admin notes show on verified submissions too (partial-credit context,
+    // encouragement, trash talk...), not just rejections.
+    return `✓ Verified${pts}${s.admin_note ? ' — ' + s.admin_note : ''}`
   }
   if (s.status === 'rejected') {
     return `✕ Rejected${s.admin_note ? ' — ' + s.admin_note : ' — try again'}`
