@@ -67,7 +67,7 @@ export class MusicEngine {
   }
 
   get tempo() {
-    return this.mood === 'tension' ? 92 : this.mood === 'party' ? 118 : 102
+    return this.mood === 'tension' ? 94 : this.mood === 'party' ? 126 : 108
   }
 
   tick() {
@@ -82,7 +82,8 @@ export class MusicEngine {
 
   schedule(step, t) {
     if (this.mood === 'tension') this.tension(step, t)
-    else this.groove(step, t, this.mood === 'party')
+    else if (this.mood === 'party') this.party(step, t)
+    else this.groove(step, t, false)
   }
 
   // --- voices ---------------------------------------------------------------
@@ -139,6 +140,38 @@ export class MusicEngine {
     o.stop(t0 + 0.3)
   }
 
+  snare(t0, vol = 0.2) {
+    const src = this.ctx.createBufferSource()
+    src.buffer = this.noiseBuf
+    const f = this.ctx.createBiquadFilter()
+    f.type = 'highpass'
+    f.frequency.value = 1800
+    const g = this.ctx.createGain()
+    g.gain.setValueAtTime(vol, t0)
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14)
+    src.connect(f)
+    f.connect(g)
+    g.connect(this.master)
+    src.start(t0)
+    src.stop(t0 + 0.18)
+  }
+
+  crash(t0, vol = 0.18) {
+    const src = this.ctx.createBufferSource()
+    src.buffer = this.noiseBuf
+    const f = this.ctx.createBiquadFilter()
+    f.type = 'highpass'
+    f.frequency.value = 4200
+    const g = this.ctx.createGain()
+    g.gain.setValueAtTime(vol, t0)
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.2)
+    src.connect(f)
+    f.connect(g)
+    g.connect(this.master)
+    src.start(t0)
+    src.stop(t0 + 1.3)
+  }
+
   brass(freq, t0, dur, vol = 0.14) {
     for (const detune of [-5, 5]) {
       const o = this.ctx.createOscillator()
@@ -164,37 +197,66 @@ export class MusicEngine {
 
   // --- patterns ---------------------------------------------------------------
 
-  // Chill four-chord loop: C - G - Am - F. Party mode brightens + doubles up.
-  groove(step, t, party) {
-    const bar = Math.floor(step / 16) % 4
-    const chords = [
-      [48, 55, 60, 64], // C
-      [43, 55, 59, 62], // G
-      [45, 57, 60, 64], // Am
-      [41, 53, 57, 60], // F
-    ]
-    const chord = chords[bar]
+  CHORDS = [
+    [48, 55, 60, 64], // C
+    [43, 55, 59, 62], // G
+    [45, 57, 60, 64], // Am
+    [41, 53, 57, 60], // F
+  ]
+
+  // Bright four-chord loop: C - G - Am - F, with a backbeat so it bounces.
+  groove(step, t) {
+    const chord = this.CHORDS[Math.floor(step / 16) % 4]
     const s = step % 16
 
-    // Drums
+    // Drums: kicks + backbeat snare + hats
     if (s === 0 || s === 8) this.kick(t)
-    if (party && (s === 4 || s === 12)) this.kick(t, 100, 55, 0.3)
+    if (s === 4 || s === 12) this.snare(t, 0.13)
     if (s % 2 === 0) this.hat(t, s % 4 === 0 ? 0.14 : 0.07)
 
-    // Bass
-    if (s === 0) this.tone('triangle', F(chord[0] - 12), t, 0.5, 0.3)
+    // Bass: bouncy root/octave
+    if (s === 0) this.tone('triangle', F(chord[0] - 12), t, 0.4, 0.3)
+    if (s === 6) this.tone('triangle', F(chord[0]), t, 0.2, 0.18)
     if (s === 8) this.tone('triangle', F(chord[0] - 12), t, 0.3, 0.25)
     if (s === 12) this.tone('triangle', F(chord[1] - 12), t, 0.25, 0.22)
 
-    // Arp
+    // Arp, up an octave so it sparkles
     if (s % 2 === 0) {
       const seq = [1, 2, 3, 2]
-      const note = chord[seq[(s / 2) % 4]] + (party ? 12 : 0)
-      this.tone('triangle', F(note), t, 0.22, party ? 0.09 : 0.07, 3200)
+      this.tone('triangle', F(chord[seq[(s / 2) % 4]] + 12), t, 0.22, 0.08, 3600)
     }
-    // Party sparkle
-    if (party && s % 4 === 1) {
-      this.tone('square', F(chord[(s / 4) % 4] + 24), t, 0.1, 0.03, 5000)
+  }
+
+  // Post-winner victory lap: four-on-the-floor, claps, brass stabs, sparkle.
+  party(step, t) {
+    const bar = Math.floor(step / 16) % 4
+    const chord = this.CHORDS[bar]
+    const s = step % 16
+
+    // Drums: four-on-the-floor kick, claps on the backbeat, offbeat open hats
+    if (s % 4 === 0) this.kick(t, 110, 50, 0.45)
+    if (s === 4 || s === 12) this.snare(t, 0.22)
+    if (s % 4 === 2) this.hat(t, 0.16)
+    else if (s % 2 === 0) this.hat(t, 0.06)
+
+    // Driving eighth-note bass
+    if (s % 2 === 0) {
+      const oct = s % 4 === 0 ? -12 : 0
+      this.tone('triangle', F(chord[0] + oct), t, 0.2, 0.28)
+    }
+
+    // Triumphant brass stab on every chord change, bigger every 4th bar
+    if (s === 0) {
+      const dur = bar === 3 ? 0.5 : 0.22
+      for (const n of [chord[1], chord[2], chord[3]]) this.brass(F(n), t, dur, 0.09)
+    }
+    // Answering high stab halfway through the bar
+    if (s === 10) this.brass(F(chord[3] + 12), t, 0.15, 0.06)
+
+    // Sparkle arp on top
+    if (s % 2 === 1) {
+      const seq = [3, 2, 1, 2]
+      this.tone('square', F(chord[seq[((s - 1) / 2) % 4] + 0] + 24), t, 0.09, 0.03, 6000)
     }
   }
 
@@ -214,21 +276,30 @@ export class MusicEngine {
     if (s === 4 || s === 12) this.tone('sine', F(57), t, 0.3, 0.04) // heartbeat A3
   }
 
-  // Brass fanfare + timpani roll, then the party groove takes over.
+  // Big brass fanfare + timpani roll + cymbal crash, then the victory-lap
+  // groove takes over.
   playFanfare() {
     const t = this.ctx.currentTime + 0.05
     const hits = [
-      [0.0, [67, 72, 76], 0.3],
-      [0.35, [67, 72, 76], 0.3],
-      [0.7, [65, 69, 74], 0.4],
-      [1.2, [67, 72, 76, 79], 1.3],
+      [0.0, [67, 72, 76], 0.28],
+      [0.3, [67, 72, 76], 0.28],
+      [0.6, [65, 69, 74], 0.35],
+      // quick rising run…
+      [1.0, [72], 0.12],
+      [1.12, [74], 0.12],
+      [1.24, [76], 0.12],
+      [1.36, [79], 0.14],
+      // …into the huge final chord, doubled an octave up
+      [1.55, [67, 72, 76, 79, 84, 88], 1.5],
     ]
     for (const [dt, notes, dur] of hits) {
-      for (const n of notes) this.brass(F(n), t + dt, dur)
+      for (const n of notes) this.brass(F(n), t + dt, dur, 0.13)
     }
-    for (let i = 0; i < 14; i++) this.kick(t + i * 0.08, 90, 50, 0.28) // timpani roll
-    // party groove starts right as the last chord rings out
+    for (let i = 0; i < 18; i++) this.kick(t + i * 0.07, 92, 50, 0.26) // timpani roll
+    this.crash(t + 1.55) // 💥
+    this.kick(t + 1.55, 130, 45, 0.6)
+    // victory-lap groove starts as the final chord rings out
     this.step = 0
-    this.nextTime = t + 2.5
+    this.nextTime = t + 2.9
   }
 }
