@@ -165,25 +165,25 @@ export function computeRecap(teams, submissions, { challengeMap, questMap, confi
     if (standing.length >= 2) {
       const now = standing[0].tot === standing[1].tot ? 'tie' : standing[0].id
       if (now !== leader && leader !== null) {
+        // Attach the photo of the very submission that flipped the game.
         moments.push(
           now === 'tie'
-            ? { ts, time: fmt(s.created_at), type: 'lead', head: 'ALL SQUARE', sub: `Dead level at ${standing[0].tot} apiece` }
-            : { ts, time: fmt(s.created_at), type: 'lead', head: 'LEAD CHANGE', sub: `${teamName.get(now)} snatches the lead, ${standing[0].tot}–${standing[1].tot}` },
+            ? { ts, time: fmt(s.created_at), type: 'lead', head: 'ALL SQUARE', sub: `“${c.title}” levels it at ${standing[0].tot} apiece`, photo }
+            : { ts, time: fmt(s.created_at), type: 'lead', head: 'LEAD CHANGE', sub: `${teamName.get(now)} snatches the lead, ${standing[0].tot}–${standing[1].tot} — “${c.title}” did it`, photo },
         )
       }
       leader = now
     }
   })
 
-  // The admin's 🎞 picks become HIGHLIGHT moments (photo + caption only — no
-  // scores, so late picks can't spoil anything). Capped so the tape stays tight.
+  // HIGHLIGHT moments (photo + caption only — no scores, so nothing spoils):
+  // the admin's 🎞 picks come first, then seeded-random verified photos fill
+  // up to the target so the tape is rich with pictures either way.
+  const HIGHLIGHT_TARGET = 8
   const usedPhotos = new Set(moments.map((m) => m.photo).filter(Boolean))
   const pickIds = new Set(config?.reelIds || [])
-  let picksAdded = 0
-  for (const s of chrono) {
-    if (picksAdded >= 6) break
-    if (!pickIds.has(s.id) || s.status !== 'verified') continue
-    if (s.evidence_type !== 'photo' || !s.evidence_path || usedPhotos.has(s.evidence_path)) continue
+  let highlights = 0
+  const addHighlight = (s) => {
     const c = challengeMap.get(s.challenge_id)
     moments.push({
       ts: +new Date(s.created_at), time: fmt(s.created_at), type: 'photo',
@@ -191,7 +191,28 @@ export function computeRecap(teams, submissions, { challengeMap, questMap, confi
       sub: `${teamName.get(s.team_id)}${c ? ` — “${c.title}”` : ''}`,
       photo: s.evidence_path,
     })
-    picksAdded++
+    usedPhotos.add(s.evidence_path)
+    highlights++
+  }
+  const isUsablePhoto = (s) =>
+    s.status === 'verified' && s.evidence_type === 'photo' && s.evidence_path &&
+    !usedPhotos.has(s.evidence_path)
+  for (const s of chrono) {
+    if (highlights >= HIGHLIGHT_TARGET) break
+    if (pickIds.has(s.id) && isUsablePhoto(s)) addHighlight(s)
+  }
+  if (highlights < HIGHLIGHT_TARGET) {
+    const pool = chrono.filter((s) => !pickIds.has(s.id) && isUsablePhoto(s))
+    let seed = 987654321 >>> 0
+    const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32)
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1))
+      ;[pool[i], pool[j]] = [pool[j], pool[i]]
+    }
+    for (const s of pool) {
+      if (highlights >= HIGHLIGHT_TARGET) break
+      addHighlight(s)
+    }
   }
 
   moments.sort((a, b) => a.ts - b.ts)
@@ -211,7 +232,7 @@ export function computeRecap(teams, submissions, { challengeMap, questMap, confi
   // Keep the tape tight: shed extra big plays, then extra highlights.
   let out = moments
   for (const shedType of ['big', 'photo']) {
-    while (out.length > 16 && out.some((m) => m.type === shedType)) {
+    while (out.length > 20 && out.some((m) => m.type === shedType)) {
       const i = out.findIndex((m) => m.type === shedType)
       out = [...out.slice(0, i), ...out.slice(i + 1)]
     }

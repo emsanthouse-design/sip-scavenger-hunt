@@ -123,8 +123,23 @@ export default function RevealTab({
   const cur = STAGES[Math.min(stage, STAGES.length - 1)]
   const last = stage >= STAGES.length - 1
 
-  const next = () => setStage((s) => Math.min(s + 1, STAGES.length - 1))
-  const back = () => setStage((s) => Math.max(s - 1, 0))
+  // The recap is presenter-driven: while on it, "next" steps through PLAYS
+  // first and only moves to the next section after the tape ends.
+  const [recapIdx, setRecapIdx] = useState(0)
+  const next = () => {
+    if (cur === 'recap' && recapIdx < recap.length - 1) setRecapIdx(recapIdx + 1)
+    else setStage((s) => Math.min(s + 1, STAGES.length - 1))
+  }
+  const back = () => {
+    if (cur === 'recap' && recapIdx > 0) setRecapIdx(recapIdx - 1)
+    else setStage((s) => Math.max(s - 1, 0))
+  }
+  // Keyboard handlers read the latest next/back through refs (cur/recapIdx
+  // change every render; a once-bound listener would go stale).
+  const nextRef = useRef(next)
+  const backRef = useRef(back)
+  nextRef.current = next
+  backRef.current = back
 
   // --- music ----------------------------------------------------------------
   const [music, setMusic] = useState(false)
@@ -161,14 +176,14 @@ export default function RevealTab({
     const onKey = (e) => {
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
         e.preventDefault()
-        next()
-      } else if (e.key === 'ArrowLeft') back()
+        nextRef.current()
+      } else if (e.key === 'ArrowLeft') backRef.current()
       else if (e.key === 'Escape') onExit?.()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [STAGES.length])
+  }, [])
 
   // Winners (handles a tie for first).
   const topTotal = rows[0]?.score.total ?? 0
@@ -203,7 +218,14 @@ export default function RevealTab({
         </div>
       )}
 
-      {cur === 'recap' && <Recap moments={recap} />}
+      {cur === 'recap' && (
+        <Recap
+          moments={recap}
+          idx={recapIdx}
+          onPrev={() => setRecapIdx((x) => Math.max(0, x - 1))}
+          onNext={() => setRecapIdx((x) => Math.min(recap.length - 1, x + 1))}
+        />
+      )}
 
       {cur === 'map' && (
         <div className="reveal-stage">
@@ -573,20 +595,11 @@ function Podium({ medal, label, row }) {
   )
 }
 
-// ESPN-style play-by-play: auto-advances through the generated moments once,
-// then holds on the cliffhanger. Each moment remounts (key) so the entrance
-// animation replays like a broadcast graphics package.
-function Recap({ moments }) {
-  const [i, setI] = useState(0)
-  useEffect(() => {
-    if (moments.length < 2) return
-    const t = setInterval(
-      () => setI((x) => (x + 1 >= moments.length ? x : x + 1)),
-      4200,
-    )
-    return () => clearInterval(t)
-  }, [moments.length])
-
+// ESPN-style play-by-play, presenter-driven: ‹ › arrows (or arrow keys / the
+// Next button) step through the plays at whatever pace the room wants. Each
+// moment remounts (key) so the entrance animation replays like a broadcast
+// graphics package.
+function Recap({ moments, idx: rawIdx, onPrev, onNext }) {
   if (moments.length === 0) {
     return (
       <div className="reveal-stage">
@@ -594,8 +607,9 @@ function Recap({ moments }) {
       </div>
     )
   }
-  const idx = Math.min(i, moments.length - 1)
+  const idx = Math.min(rawIdx, moments.length - 1)
   const m = moments[idx]
+  const nxt = moments[Math.min(idx + 1, moments.length - 1)]
   const done = idx >= moments.length - 1
   return (
     <div className="reveal-stage" key={idx}>
@@ -614,6 +628,16 @@ function Recap({ moments }) {
           alt=""
         />
       )}
+      {/* preload the next play's photo so it slams in clean */}
+      {!done && nxt.photo && <img src={evidenceUrl(nxt.photo)} alt="" style={{ display: 'none' }} />}
+      <div className="row" style={{ gap: 12 }}>
+        <button className="secondary" onClick={onPrev} disabled={idx === 0} aria-label="Previous play">
+          ‹
+        </button>
+        <button onClick={onNext} disabled={done} aria-label="Next play">
+          ›
+        </button>
+      </div>
       {done && <div className="reveal-sub" style={{ fontSize: 14 }}>end of tape — onward →</div>}
     </div>
   )
