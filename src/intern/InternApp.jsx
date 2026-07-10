@@ -12,12 +12,21 @@ import { useOnline } from '../lib/useOnline'
 const TEAM_KEY = 'sip-team'
 const NAME_KEY = 'sip-name'
 
+// A real Supabase team id is a 36-char UUID. Anything shorter (e.g. the old
+// "HUB" placeholder saved while the DB was unreachable) can't file submissions,
+// so we drop it and make the intern re-join to pick up the real id.
+function isRealTeamId(id) {
+  return typeof id === 'string' && id.length >= 32
+}
+
 function loadSaved() {
   try {
-    return {
-      team: JSON.parse(localStorage.getItem(TEAM_KEY) || 'null'),
-      name: localStorage.getItem(NAME_KEY) || '',
+    const team = JSON.parse(localStorage.getItem(TEAM_KEY) || 'null')
+    if (team && !isRealTeamId(team.id)) {
+      localStorage.removeItem(TEAM_KEY)
+      return { team: null, name: localStorage.getItem(NAME_KEY) || '' }
     }
+    return { team, name: localStorage.getItem(NAME_KEY) || '' }
   } catch {
     return { team: null, name: '' }
   }

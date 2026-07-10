@@ -7,6 +7,7 @@ export default function JoinTeam({ teams, onJoin }) {
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [err, setErr] = useState('')
+  const noTeams = !teams || teams.length === 0
 
   function submit(e) {
     e.preventDefault()
@@ -59,8 +60,19 @@ export default function JoinTeam({ teams, onJoin }) {
             placeholder="So the admin knows who submitted"
           />
 
+          {noTeams && (
+            <div className="banner err">
+              Couldn’t reach the server. Check your connection, then reload.
+            </div>
+          )}
           {err && <div className="banner err">{err}</div>}
-          <button type="submit">Join team</button>
+          {noTeams ? (
+            <button type="button" onClick={() => window.location.reload()}>
+              Reload
+            </button>
+          ) : (
+            <button type="submit">Join team</button>
+          )}
         </form>
       </div>
     </div>

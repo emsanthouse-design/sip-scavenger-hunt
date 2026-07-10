@@ -36,6 +36,13 @@ export function subscribeOutbox(fn) {
 
 export async function initOutbox() {
   items = await idb.all()
+  // Drop any queued item filed under a non-UUID team id (e.g. the old "HUB"
+  // placeholder saved while the DB was unreachable). These can NEVER upload —
+  // the DB rejects the team_id — so left alone they retry forever and hammer
+  // the database. They never reached the server, so nothing synced is lost.
+  const valid = (i) => typeof i.teamId === 'string' && i.teamId.length >= 32
+  for (const bad of items.filter((i) => !valid(i))) await idb.delete(bad.id)
+  items = items.filter(valid)
   emit()
   kick()
   if (typeof window !== 'undefined') {

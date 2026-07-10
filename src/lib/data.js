@@ -3,7 +3,7 @@
 // we fall back to the bundled seed so interns never see a blank challenge list.
 
 import { supabase, isConfigured } from './supabase'
-import { CHALLENGES, QUESTS, CONFIG, TEAMS } from '../config/seed'
+import { CHALLENGES, QUESTS, CONFIG } from '../config/seed'
 
 // Normalize a DB challenge row (snake_case) into the shape the UI expects,
 // tolerating either source so seed + DB are interchangeable.
@@ -37,10 +37,14 @@ export async function loadChallenges() {
 export async function loadTeams() {
   if (isConfigured) {
     const { data, error } = await supabase.from('teams').select('*').order('name')
-    if (!error && data?.length) return data
+    if (!error) return data || []
   }
-  // Seed fallback: synthesize stable-ish ids from the join code.
-  return TEAMS.map((t) => ({ id: t.join_code, name: t.name, join_code: t.join_code }))
+  // IMPORTANT: no offline fallback for teams. A submission is filed under the
+  // team's real UUID, so inventing a placeholder id (the old behavior) produced
+  // rows the database rejects with "invalid input syntax for type uuid". If the
+  // DB can't be reached we return no teams and the join screen asks to reload,
+  // which is far safer than letting someone "join" with an id that can't submit.
+  return []
 }
 
 export async function loadConfig() {
@@ -70,13 +74,14 @@ export async function loadSubmissions({ teamId } = {}) {
 // Falls back to a no-op if Supabase isn't configured.
 export function subscribeSubmissions(onChange, { teamId } = {}) {
   if (!isConfigured) return () => {}
+  // Filter interns to their own team's changes server-side. Without this every
+  // client re-fetched on every other team's submission — an O(n^2) query storm
+  // across ~20 phones that helped exhaust the DB connection pool (429s).
+  const changeSpec = { event: '*', schema: 'public', table: 'submissions' }
+  if (teamId) changeSpec.filter = `team_id=eq.${teamId}`
   const channel = supabase
     .channel('submissions-' + (teamId || 'all'))
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'submissions' },
-      (payload) => onChange(payload),
-    )
+    .on('postgres_changes', changeSpec, (payload) => onChange(payload))
     .subscribe()
   return () => supabase.removeChannel(channel)
 }

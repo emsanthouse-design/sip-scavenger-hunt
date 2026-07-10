@@ -36,9 +36,13 @@ export async function compressImage(file) {
   }
 }
 
-// Hard cap for video uploads (MB). Over cellular, big videos will fail; we tell
-// interns to keep clips short. Configurable here in one place.
-export const MAX_VIDEO_MB = 40
+// Hard cap for video uploads (MB). iPhone clips are large (a 30s 1080p/4K clip
+// can be 100+ MB), so 40 was too low to be usable. On the paid Supabase plan we
+// can accept bigger files — but this MUST be matched by the storage bucket's
+// "Upload file size limit" in the Supabase dashboard, or big files 413 there.
+// Over weak cell these are slow; the outbox retries. Tell teams to keep clips
+// short (15–30s) and record at 1080p, not 4K.
+export const MAX_VIDEO_MB = 100
 
 export function fileTooBig(file) {
   if (!file) return false
