@@ -8,6 +8,8 @@ import AdminLogin from './AdminLogin.jsx'
 import SubmissionQueue from './SubmissionQueue.jsx'
 import Leaderboard from './Leaderboard.jsx'
 import TeamRoster from './TeamRoster.jsx'
+import StrategyTab from './StrategyTab.jsx'
+import MapTab from './MapTab.jsx'
 import Settings from './Settings.jsx'
 import { useMembers } from '../lib/useMembers'
 
@@ -55,6 +57,12 @@ export default function AdminApp() {
         <button className={tab === 'teams' ? 'active' : ''} onClick={() => setTab('teams')}>
           Teams{members.length ? ` (${members.length})` : ''}
         </button>
+        <button className={tab === 'strategy' ? 'active' : ''} onClick={() => setTab('strategy')}>
+          Strategy
+        </button>
+        <button className={tab === 'map' ? 'active' : ''} onClick={() => setTab('map')}>
+          Map
+        </button>
         <button className={tab === 'settings' ? 'active' : ''} onClick={() => setTab('settings')}>
           Settings
         </button>
@@ -82,6 +90,15 @@ export default function AdminApp() {
         />
       ) : tab === 'teams' ? (
         <TeamRoster teams={teams} members={members} onChanged={refreshMembers} />
+      ) : tab === 'strategy' ? (
+        <StrategyTab
+          teams={teams}
+          submissions={subs}
+          challengeMap={challengeMap}
+          questMap={questMap}
+        />
+      ) : tab === 'map' ? (
+        <MapTab teams={teams} submissions={subs} challengeMap={challengeMap} />
       ) : (
         <Settings
           challenges={challenges}

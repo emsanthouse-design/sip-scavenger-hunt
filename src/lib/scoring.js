@@ -139,6 +139,20 @@ export function scoreTeam(submissions, { challengeMap, questMap, config }) {
   }
 }
 
+// Verified points per quest for one team, caps enforced — powers the admin
+// "strategy fingerprint" view. Returns Map<questId, points>.
+export function pointsByQuest(submissions, { challengeMap }) {
+  const verified = submissions.filter((s) => s.status === STATUS.VERIFIED)
+  const { kept } = applyCaps(verified, challengeMap)
+  const by = new Map()
+  for (const s of kept) {
+    const c = challengeMap.get(s.challenge_id)
+    if (!c) continue
+    by.set(c.quest, (by.get(c.quest) || 0) + submissionPoints(s, c))
+  }
+  return by
+}
+
 // Next Hero's Journey tier a team is reaching for (for the meter UI).
 // Returns { current, nextAt, nextBonus } or null if maxed out.
 export function nextHeroTier(questsTouched, heroTiers) {

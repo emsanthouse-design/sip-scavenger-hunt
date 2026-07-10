@@ -1,7 +1,11 @@
+import { Suspense, lazy } from 'react'
 import { useRoute } from './lib/useRoute'
 import { isConfigured } from './lib/supabase'
 import InternApp from './intern/InternApp.jsx'
-import AdminApp from './admin/AdminApp.jsx'
+
+// The admin dashboard (incl. the Leaflet map) is code-split so intern phones
+// on cellular never download any of it.
+const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
 
 export default function App() {
   const [path] = useRoute()
@@ -9,7 +13,13 @@ export default function App() {
   if (!isConfigured) return <NotConfigured />
 
   // Admin lives under /admin; everything else is the intern experience.
-  if (path.startsWith('/admin')) return <AdminApp />
+  if (path.startsWith('/admin')) {
+    return (
+      <Suspense fallback={<div className="app pad center muted">Loading admin…</div>}>
+        <AdminApp />
+      </Suspense>
+    )
+  }
   return <InternApp />
 }
 
