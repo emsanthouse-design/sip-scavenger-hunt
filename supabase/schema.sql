@@ -173,9 +173,9 @@ values
   -- Quest 4 — City Hall Insider
   ('cityhall-model-room', 4, 'Visit the model room', 2, 1, 'photo', false, null, true, 1),
   ('cityhall-flag',       4, 'Identify the flag (besides the US & Boston flags) flown outside City Hall today — and explain why it matters', 2, 1, 'photo', true, null, true, 2),
-  ('cityhall-councilor',  4, 'Photo with a City Council member', 2, 1, 'photo', false, null, true, 3),
+  ('cityhall-councilor',  4, 'Photo with a City Council member', 2, 1, 'photo', false, null, false, 3),
   ('cityhall-service',    4, 'Photo that represents "public service" — explain how', 2, 1, 'photo', true, null, true, 4),
-  ('cityhall-bcyf',       4, 'Visit a BCYF center inside the perimeter — bring back a program brochure', 2, 1, 'photo', true, null, true, 5),
+  ('cityhall-bcyf',       4, 'Visit a BCYF center inside the perimeter', 2, 1, 'photo', false, null, true, 5),
   ('cityhall-mezzanine',  4, '15-second video explaining the mezzanine art exhibit', 2, 1, 'video', false, null, true, 6),
   ('cityhall-common',     4, 'Team video: one thing all your departments have in common', 2, 1, 'video', false, null, true, 7),
   ('cityhall-slot',       4, '(Configurable slot — edit or hide in Settings)', 2, 1, 'photo', false, null, false, 8),
@@ -189,6 +189,11 @@ values
   ('culture-fav-thing',   5, 'Ask someone their favorite thing about Boston + tell us (max 2 people)', 2, 2, 'recorded', true, null, true, 6),
   ('culture-theater',     5, 'Theater District photo recreating an upcoming opera/theater performance', 5, 1, 'photo', false, null, true, 7),
   ('culture-famine',      5, 'Irish Famine Memorial on School Street — photo + explain its importance', 5, 1, 'photo', true, null, true, 8),
+
+  -- Quest 6 — LinkedIn Bonus (individual; +1 per teammate reposted)
+  ('linkedin-repost', 6, 'LinkedIn: post a challenge photo — "What is Boston to you?" Tag @CityofBoston + the packet hashtags, then submit a screenshot here. +1 for each teammate the City reposts (one post per person).',
+   1, 5, 'photo', true,
+   'Award (and repost) only if it clears the bar: says something real, professional first-person voice, tags @CityofBoston + teammates + a hashtag, clear photo with 2+ teammates, nothing political/unsafe, clean copy. One post per person; +1 each.', true, 1),
 
   -- Quest 0 — Roaming Bonus (one-time per team)
   ('roaming-bonus', 0, 'Spot BOTH roamers (Isabella & Avis) in one photo with 2+ teammates', 3, 1, 'photo', true,

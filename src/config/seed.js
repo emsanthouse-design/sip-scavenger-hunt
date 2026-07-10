@@ -23,6 +23,9 @@ export const QUESTS = [
   { id: 3, name: 'Lights, Camera, Boston', tagline: 'Creative videos — whole team on camera.', emoji: '🎬', heroEligible: true },
   { id: 4, name: 'City Hall Insider', tagline: 'The "you actually work here" quest.', emoji: '🏛', heroEligible: true },
   { id: 5, name: 'Culture & Community', tagline: 'The big investment — commit and you can win the hunt.', emoji: '🎨', heroEligible: true },
+  // Bonus sections — NOT among the five quests, so they don't count toward the
+  // Hero's Journey breadth bonus (heroEligible: false).
+  { id: 6, name: 'LinkedIn Bonus', tagline: 'Post your best moment — +1 for each teammate the City reposts.', emoji: '💼', heroEligible: false },
   { id: 0, name: 'Roaming Bonus', tagline: 'Spot the roamers out on the route.', emoji: '✨', heroEligible: false },
 ]
 
@@ -78,9 +81,10 @@ export const CHALLENGES = [
   // --- Quest 4: City Hall Insider (2 pts each) ------------------------------
   { id: 'cityhall-model-room', quest: 4, title: 'Visit the model room', points: 2, maxClaims: 1, evidence: 'photo' },
   { id: 'cityhall-flag',       quest: 4, title: 'Identify the flag (besides the US & Boston flags) flown outside City Hall today — and explain why it matters', points: 2, maxClaims: 1, evidence: 'photo', enhanced: true },
-  { id: 'cityhall-councilor',  quest: 4, title: 'Photo with a City Council member', points: 2, maxClaims: 1, evidence: 'photo' },
+  // Dropped in the final draft (replaced by the flag challenge); hidden, not deleted.
+  { id: 'cityhall-councilor',  quest: 4, title: 'Photo with a City Council member', points: 2, maxClaims: 1, evidence: 'photo', active: false },
   { id: 'cityhall-service',    quest: 4, title: 'Photo that represents "public service" — explain how', points: 2, maxClaims: 1, evidence: 'photo', enhanced: true },
-  { id: 'cityhall-bcyf',       quest: 4, title: 'Visit a BCYF center inside the perimeter — bring back a program brochure', points: 2, maxClaims: 1, evidence: 'photo', enhanced: true },
+  { id: 'cityhall-bcyf',       quest: 4, title: 'Visit a BCYF center inside the perimeter', points: 2, maxClaims: 1, evidence: 'photo' },
   { id: 'cityhall-mezzanine',  quest: 4, title: '15-second video explaining the mezzanine art exhibit', points: 2, maxClaims: 1, evidence: 'video' },
   { id: 'cityhall-common',     quest: 4, title: 'Team video: one thing all your departments have in common', points: 2, maxClaims: 1, evidence: 'video' },
   // Editable slot kept for the "accessibility office" item being reworked.
@@ -95,6 +99,11 @@ export const CHALLENGES = [
   { id: 'culture-fav-thing',  quest: 5, title: 'Ask someone their favorite thing about Boston + tell us (max 2 people)', points: 2, maxClaims: 2, evidence: 'recorded', enhanced: true },
   { id: 'culture-theater',    quest: 5, title: 'Theater District photo recreating an upcoming opera/theater performance', points: 5, maxClaims: 1, evidence: 'photo' },
   { id: 'culture-famine',     quest: 5, title: 'Irish Famine Memorial on School Street — photo + explain its importance', points: 5, maxClaims: 1, evidence: 'photo', enhanced: true },
+
+  // --- Quest 6: LinkedIn Bonus (individual; +1 per teammate reposted) --------
+  { id: 'linkedin-repost', quest: 6, maxClaims: 5, points: 1, evidence: 'photo', enhanced: true,
+    title: 'LinkedIn: post a challenge photo — “What is Boston to you?” Tag @CityofBoston + the packet hashtags, then submit a screenshot here. +1 for each teammate the City reposts (one post per person).',
+    hint: 'Award (and repost) only if it clears the bar: says something real (not just a photo), professional first-person voice, tags @CityofBoston + teammates + a hashtag, clear well-lit photo with 2+ teammates, nothing political/unsafe, clean copy. One post per person; +1 each.' },
 
   // --- Quest 0: Roaming Bonus (one-time per team) ---------------------------
   { id: 'roaming-bonus', quest: 0, title: 'Spot BOTH roamers (Isabella & Avis) in one photo with 2+ teammates', points: 3, maxClaims: 1, evidence: 'photo', enhanced: true,

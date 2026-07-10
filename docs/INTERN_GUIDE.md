@@ -79,6 +79,16 @@ Bonus" item in the app to submit it.
 
 ---
 
+## 💼 The LinkedIn Bonus
+
+Post one of your challenge photos to **LinkedIn** with a real sentence about what
+Boston, public service, or your summer here means to you. **Tag @CityofBoston**,
+tag your teammates, and use the hashtags from your packet. Then find **"LinkedIn
+Bonus"** in the app and **submit a screenshot of your post**. If the City reposts
+it, your team earns **+1** — everyone can do it (one post each), so up to +5.
+
+---
+
 ## Quick fixes
 
 - **"Couldn't reach the server / Reload"** → tap Reload, or check your signal.
