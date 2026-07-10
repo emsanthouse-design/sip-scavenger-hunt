@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
-import { buildLeaderboard } from '../lib/scoring'
+import { buildLeaderboard, pointsByQuest } from '../lib/scoring'
 import { evidenceUrl } from '../lib/supabase'
 import MapTab from './MapTab.jsx'
+import { QUEST_COLORS } from './StrategyTab.jsx'
 import { MusicEngine } from './revealMusic'
 import { computeBoots, computeSuperlatives, computeBonuses } from './awards'
 import './reveal.css'
@@ -82,8 +83,21 @@ export default function RevealTab({
   const erinsSubs = pickList('erinsChoiceIds', 'erinsChoiceId')
   const failSubs = pickList('funniestFailIds', 'funniestFailId')
 
+  // Strategy fingerprints, spoiler-proofed for the show: each team's bar is
+  // normalized to full width (share of THEIR points by quest), so it tells the
+  // strategy story without leaking who's ahead before the podium.
+  const fingerprints = useMemo(() => {
+    const byTeam = new Map(teams.map((t) => [t.id, []]))
+    for (const s of submissions) byTeam.get(s.team_id)?.push(s)
+    return teams.map((t) => {
+      const pts = pointsByQuest(byTeam.get(t.id) || [], { challengeMap })
+      const total = [...pts.values()].reduce((a, b) => a + b, 0)
+      return { team: t, pts, total }
+    })
+  }, [teams, submissions, challengeMap])
+
   // Stage list adapts to team count and which extras exist.
-  const STAGES = ['intro', 'reel', 'map']
+  const STAGES = ['intro', 'reel', 'map', 'fingerprints']
   if (rows.length >= 3) STAGES.push('third')
   if (rows.length >= 2) STAGES.push('second')
   STAGES.push('winner', 'bonus')
@@ -181,6 +195,55 @@ export default function RevealTab({
           </h1>
           <div className="reveal-map-wrap">
             <MapTab teams={teams} submissions={submissions} challengeMap={challengeMap} />
+          </div>
+        </div>
+      )}
+
+      {cur === 'fingerprints' && (
+        <div className="reveal-stage">
+          <div className="reveal-kicker">How you played it</div>
+          <h1 className="reveal-title" style={{ fontSize: 'clamp(24px,4.5vw,52px)' }}>
+            Strategy Fingerprints
+          </h1>
+          <div className="reveal-sub">
+            Where each team’s points came from. One long color = went deep. A
+            rainbow = went wide.
+          </div>
+          <div className="reveal-fp-legend">
+            {[1, 2, 3, 4, 5, 6, 0].map((q) =>
+              fingerprints.some((f) => f.pts.get(q)) ? (
+                <span key={q}>
+                  <i style={{ background: QUEST_COLORS[q] }} />
+                  {questMap.get(q)?.name || 'Quest ' + q}
+                </span>
+              ) : null,
+            )}
+          </div>
+          <div className="reveal-bars">
+            {fingerprints.map(({ team, pts, total }) => (
+              <div key={team.id} className="reveal-bar-row">
+                <div className="label">
+                  <span>{team.name}</span>
+                </div>
+                <div className="reveal-bar-track" style={{ display: 'flex' }}>
+                  {[1, 2, 3, 4, 5, 6, 0].map((q) => {
+                    const v = pts.get(q) || 0
+                    if (!v || !total) return null
+                    return (
+                      <div
+                        key={q}
+                        style={{
+                          width: (v / total) * 100 + '%',
+                          background: QUEST_COLORS[q],
+                          transition: 'width .8s cubic-bezier(.22,1,.36,1)',
+                        }}
+                        title={`${questMap.get(q)?.name}: ${v}`}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
