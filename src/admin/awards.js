@@ -242,7 +242,7 @@ export function computeRecap(teams, submissions, { challengeMap, questMap, confi
   // play of the day, then the tape cuts out.
   const lastV = [...chrono]
     .reverse()
-    .find((s) => s.status === ‘verified’ && challengeMap.get(s.challenge_id))
+    .find((s) => s.status === 'verified' && challengeMap.get(s.challenge_id))
   if (lastV) {
     const lc = challengeMap.get(lastV.challenge_id)
     const lpts =
@@ -252,9 +252,9 @@ export function computeRecap(teams, submissions, { challengeMap, questMap, confi
     moments.push({
       ts: Number.MAX_SAFE_INTEGER,
       time: fmt(lastV.created_at),
-      type: ‘cliff’,
-      head: ‘THE TAPE CUTS OUT’,
-      sub: `The final submission of the day was accepted at ${fmt(lastV.created_at)}, worth ${lpts} point${lpts === 1 ? ‘’ : ‘s’}… and that’s where we leave it 🍿`,
+      type: 'cliff',
+      head: 'THE TAPE CUTS OUT',
+      sub: `The final submission of the day was accepted at ${fmt(lastV.created_at)}, worth ${lpts} point${lpts === 1 ? '' : 's'}… and that’s where we leave it 🍿`,
       scores: null,
     })
   }
