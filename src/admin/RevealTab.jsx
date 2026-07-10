@@ -32,11 +32,16 @@ export default function RevealTab({
 
   // Highlight reel: hand-picked photos (🎞 on Queue cards) are always in;
   // random verified photos fill up to the cap; the mix is shuffled together.
+  // The shuffle is SEEDED so the order is stable — the dashboard refetches
+  // data every ~12s, and an unseeded shuffle re-dealt the deck mid-show,
+  // which read as "repeats" on screen.
   const REEL_CAP = 20
   const { photos, totalPhotos } = useMemo(() => {
-    const shuffle = (list) => {
+    const seededShuffle = (list, seed) => {
+      let s = seed >>> 0
+      const rnd = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32)
       for (let i = list.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
+        const j = Math.floor(rnd() * (i + 1))
         ;[list[i], list[j]] = [list[j], list[i]]
       }
       return list
@@ -50,13 +55,17 @@ export default function RevealTab({
         title: challengeMap.get(s.challenge_id)?.title || '',
       }))
       .filter((p) => p.url)
+      .sort((a, b) => (a.id < b.id ? -1 : 1)) // stable base order before seeding
     const pickedIds = new Set(config?.reelIds || [])
     const picked = all.filter((p) => pickedIds.has(p.id))
-    const fill = shuffle(all.filter((p) => !pickedIds.has(p.id))).slice(
-      0,
-      Math.max(0, REEL_CAP - picked.length),
-    )
-    return { photos: shuffle([...picked, ...fill]), totalPhotos: all.length }
+    const fill = seededShuffle(
+      all.filter((p) => !pickedIds.has(p.id)),
+      20260710,
+    ).slice(0, Math.max(0, REEL_CAP - picked.length))
+    return {
+      photos: seededShuffle([...picked, ...fill], 741776),
+      totalPhotos: all.length,
+    }
   }, [submissions, challengeMap, teamName, config?.reelIds])
 
   const verifiedCount = submissions.filter((s) => s.status === 'verified').length
@@ -101,7 +110,7 @@ export default function RevealTab({
   // announce the winner early and deflate the big moment.
   const STAGES = ['intro', 'reel', 'map', 'fingerprints']
   if (rows.length >= 3) STAGES.push('third', 'second')
-  STAGES.push('winner', 'bonus')
+  STAGES.push('drumroll', 'winner', 'bonus')
   if (boots) STAGES.push('boots')
   STAGES.push('supers')
   erinsSubs.forEach((_, i) => STAGES.push('erins-' + i))
@@ -119,7 +128,9 @@ export default function RevealTab({
   const moodFor = (k) =>
     k === 'third' || k === 'second'
       ? 'tension'
-      : k === 'winner'
+      : k === 'drumroll'
+        ? 'drumroll'
+        : k === 'winner'
         ? 'fanfare'
         : ['bonus', 'boots', 'supers', 'finale'].includes(k) ||
             k.startsWith('erins-') ||
@@ -255,6 +266,16 @@ export default function RevealTab({
       )}
       {cur === 'second' && rows[1] && (
         <Podium medal="🥈" label="Second place" row={rows[1]} />
+      )}
+
+      {cur === 'drumroll' && (
+        <div className="reveal-stage">
+          <div className="reveal-kicker">The moment of truth</div>
+          <h1 className="reveal-title">
+            🥁 And the winner is<span className="reveal-dots"><i>.</i><i>.</i><i>.</i></span>
+          </h1>
+          <div className="reveal-sub">(no pressure)</div>
+        </div>
       )}
 
       {cur === 'winner' && (
@@ -550,9 +571,13 @@ function Podium({ medal, label, row }) {
 
 function Reel({ photos }) {
   const [i, setI] = useState(0)
+  // Plays through once and holds on the last slide (no looping repeats).
   useEffect(() => {
     if (photos.length < 2) return
-    const t = setInterval(() => setI((x) => x + 1), 3500)
+    const t = setInterval(
+      () => setI((x) => (x + 1 >= photos.length ? x : x + 1)),
+      3500,
+    )
     return () => clearInterval(t)
   }, [photos.length])
 
@@ -563,18 +588,20 @@ function Reel({ photos }) {
       </div>
     )
   }
-  const cur = photos[i % photos.length]
-  const nxt = photos[(i + 1) % photos.length]
+  const idx = Math.min(i, photos.length - 1)
+  const cur = photos[idx]
+  const nxt = photos[Math.min(idx + 1, photos.length - 1)]
+  const done = idx >= photos.length - 1
   return (
     <div className="reveal-stage">
       <img className="reveal-photo" src={cur.url} alt="" />
       {/* preload the next slide so transitions never flash */}
-      <img src={nxt.url} alt="" style={{ display: 'none' }} />
+      {!done && <img src={nxt.url} alt="" style={{ display: 'none' }} />}
       <div className="reveal-caption">
         <span className="team">{cur.team}</span> · {cur.title}
       </div>
       <div className="reveal-sub" style={{ fontSize: 14 }}>
-        {(i % photos.length) + 1} / {photos.length}
+        {done ? 'that’s the reel — onward →' : `${idx + 1} / ${photos.length}`}
       </div>
     </div>
   )

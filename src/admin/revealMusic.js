@@ -70,6 +70,15 @@ export class MusicEngine {
     return this.mood === 'tension' ? 94 : this.mood === 'party' ? 126 : 108
   }
 
+  // Building snare roll for the "and the winner is…" beat.
+  drumroll(step, t) {
+    const s16 = 60 / this.tempo / 4
+    const v = Math.min(0.3, 0.06 + this.step * 0.0035) // slow crescendo
+    this.snare(t, v * 0.7)
+    this.snare(t + s16 / 2, v)
+    if (step % 16 === 0) this.kick(t, 80, 45, 0.35)
+  }
+
   tick() {
     if (!this.ctx || !this.mood || this.ctx.state !== 'running') return
     const s16 = 60 / this.tempo / 4
@@ -82,6 +91,7 @@ export class MusicEngine {
 
   schedule(step, t) {
     if (this.mood === 'tension') this.tension(step, t)
+    else if (this.mood === 'drumroll') this.drumroll(step, t)
     else if (this.mood === 'party') this.party(step, t)
     else this.groove(step, t, false)
   }
