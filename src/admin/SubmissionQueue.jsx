@@ -168,6 +168,15 @@ function ReviewCard({ submission, challenge, team, onChanged, config, onAward })
           >
             🤣 {config?.funniestFailId === submission.id ? 'Funniest fail ✓' : 'Funniest fail'}
           </button>
+          {submission.evidence_type === 'photo' && submission.evidence_path && (
+            <button
+              className={'small ' + ((config?.reelIds || []).includes(submission.id) ? '' : 'secondary')}
+              disabled={busy}
+              onClick={() => onAward('reelIds', submission.id)}
+            >
+              🎞 {(config?.reelIds || []).includes(submission.id) ? 'In slideshow ✓' : 'Slideshow'}
+            </button>
+          )}
         </div>
       )}
       {err && <div className="banner err small">{err}</div>}

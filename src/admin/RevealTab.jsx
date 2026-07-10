@@ -29,22 +29,34 @@ export default function RevealTab({
 
   const teamName = useMemo(() => new Map(teams.map((t) => [t.id, t.name])), [teams])
 
-  // Verified photos for the highlight reel, shuffled once.
-  const photos = useMemo(() => {
-    const list = submissions
+  // Highlight reel: hand-picked photos (🎞 on Queue cards) are always in;
+  // random verified photos fill up to the cap; the mix is shuffled together.
+  const REEL_CAP = 20
+  const { photos, totalPhotos } = useMemo(() => {
+    const shuffle = (list) => {
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[list[i], list[j]] = [list[j], list[i]]
+      }
+      return list
+    }
+    const all = submissions
       .filter((s) => s.status === 'verified' && s.evidence_path && s.evidence_type === 'photo')
       .map((s) => ({
+        id: s.id,
         url: evidenceUrl(s.evidence_path),
         team: teamName.get(s.team_id) || 'Team',
         title: challengeMap.get(s.challenge_id)?.title || '',
       }))
       .filter((p) => p.url)
-    for (let i = list.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[list[i], list[j]] = [list[j], list[i]]
-    }
-    return list
-  }, [submissions, challengeMap, teamName])
+    const pickedIds = new Set(config?.reelIds || [])
+    const picked = all.filter((p) => pickedIds.has(p.id))
+    const fill = shuffle(all.filter((p) => !pickedIds.has(p.id))).slice(
+      0,
+      Math.max(0, REEL_CAP - picked.length),
+    )
+    return { photos: shuffle([...picked, ...fill]), totalPhotos: all.length }
+  }, [submissions, challengeMap, teamName, config?.reelIds])
 
   const verifiedCount = submissions.filter((s) => s.status === 'verified').length
   const totalPoints = rows.reduce((a, r) => a + r.score.total, 0)
@@ -136,7 +148,7 @@ export default function RevealTab({
               <span>verified submissions</span>
             </div>
             <div className="reveal-stat">
-              <b>{photos.length}</b>
+              <b>{totalPhotos}</b>
               <span>photos captured</span>
             </div>
             <div className="reveal-stat">

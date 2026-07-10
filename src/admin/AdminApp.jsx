@@ -30,9 +30,20 @@ export default function AdminApp() {
 
   const pendingCount = subs.filter((s) => s.status === 'pending').length
 
-  // Toggle a reveal-show award (Erin's Choice / Funniest Fail) on a submission.
+  // Toggle a reveal-show pick on a submission. Single-value keys (Erin's
+  // Choice / Funniest Fail) toggle in place; 'reelIds' is a multi-select list
+  // of photos hand-picked for the highlight slideshow.
   async function awardPick(key, id) {
-    const next = { ...config, [key]: config?.[key] === id ? null : id }
+    let next
+    if (key === 'reelIds') {
+      const cur = config?.reelIds || []
+      next = {
+        ...config,
+        reelIds: cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
+      }
+    } else {
+      next = { ...config, [key]: config?.[key] === id ? null : id }
+    }
     try {
       await saveConfig({ config: next })
       refresh()
