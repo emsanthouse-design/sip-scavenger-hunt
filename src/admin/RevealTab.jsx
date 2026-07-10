@@ -514,6 +514,16 @@ export default function RevealTab({
           <div className="reveal-sub" style={{ fontFamily: 'var(--display)', fontWeight: 700 }}>
             Now go celebrate — you earned it. 🎉
           </div>
+          <button
+            className="secondary"
+            onClick={() => {
+              setStage(0)
+              setRecapIdx(0)
+              window.scrollTo(0, 0)
+            }}
+          >
+            ↺ Back to the beginning
+          </button>
         </div>
       )}
 
@@ -579,6 +589,13 @@ function PickStage({ kicker, title, sub, submission, challengeMap }) {
       </div>
       {submission.text_answer && (
         <div className="reveal-sub">“{submission.text_answer}”</div>
+      )}
+      {/* The admin's note becomes on-screen commentary — the official ruling. */}
+      {submission.admin_note && (
+        <div className="reveal-ruling">
+          <span className="label">🎙 The official ruling</span>
+          <div className="text">“{submission.admin_note}”</div>
+        </div>
       )}
     </div>
   )

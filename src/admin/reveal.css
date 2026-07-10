@@ -189,6 +189,30 @@
   min-width: min(260px, 80vw);
 }
 
+/* Erin's on-screen ruling (the admin note, shown on pick slides) */
+.reveal-ruling {
+  max-width: min(92vw, 760px);
+  background: rgba(255, 210, 63, 0.1);
+  border: 1px solid rgba(255, 210, 63, 0.4);
+  border-radius: 14px;
+  padding: 14px 20px;
+}
+.reveal-ruling .label {
+  display: block;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffd23f;
+  margin-bottom: 6px;
+}
+.reveal-ruling .text {
+  font-size: clamp(15px, 2.1vw, 22px);
+  font-style: italic;
+  color: #f4e9c8;
+}
+
 /* Play-by-play recap */
 .recap-chip {
   font-family: var(--display);
