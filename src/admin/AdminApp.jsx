@@ -7,9 +7,7 @@ import { useRoute } from '../lib/useRoute'
 import AdminLogin from './AdminLogin.jsx'
 import SubmissionQueue from './SubmissionQueue.jsx'
 import Leaderboard from './Leaderboard.jsx'
-import TeamRoster from './TeamRoster.jsx'
-import StrategyTab from './StrategyTab.jsx'
-import MapTab from './MapTab.jsx'
+import ActivityTab from './ActivityTab.jsx'
 import Settings from './Settings.jsx'
 import { useMembers } from '../lib/useMembers'
 
@@ -54,14 +52,8 @@ export default function AdminApp() {
         <button className={tab === 'board' ? 'active' : ''} onClick={() => setTab('board')}>
           Leaderboard
         </button>
-        <button className={tab === 'teams' ? 'active' : ''} onClick={() => setTab('teams')}>
-          Teams{members.length ? ` (${members.length})` : ''}
-        </button>
-        <button className={tab === 'strategy' ? 'active' : ''} onClick={() => setTab('strategy')}>
-          Strategy
-        </button>
-        <button className={tab === 'map' ? 'active' : ''} onClick={() => setTab('map')}>
-          Map
+        <button className={tab === 'activity' ? 'active' : ''} onClick={() => setTab('activity')}>
+          Activity
         </button>
         <button className={tab === 'settings' ? 'active' : ''} onClick={() => setTab('settings')}>
           Settings
@@ -88,17 +80,15 @@ export default function AdminApp() {
           questMap={questMap}
           config={config}
         />
-      ) : tab === 'teams' ? (
-        <TeamRoster teams={teams} members={members} onChanged={refreshMembers} />
-      ) : tab === 'strategy' ? (
-        <StrategyTab
+      ) : tab === 'activity' ? (
+        <ActivityTab
           teams={teams}
           submissions={subs}
           challengeMap={challengeMap}
           questMap={questMap}
+          members={members}
+          onMembersChanged={refreshMembers}
         />
-      ) : tab === 'map' ? (
-        <MapTab teams={teams} submissions={subs} challengeMap={challengeMap} />
       ) : (
         <Settings
           challenges={challenges}
