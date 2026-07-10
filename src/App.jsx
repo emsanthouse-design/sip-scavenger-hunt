@@ -3,20 +3,29 @@ import { useRoute } from './lib/useRoute'
 import { isConfigured } from './lib/supabase'
 import InternApp from './intern/InternApp.jsx'
 
-// The admin dashboard (incl. the Leaflet map) is code-split so intern phones
-// on cellular never download any of it.
+// The admin dashboard and spectator view (incl. the Leaflet map) are
+// code-split so intern phones on cellular never download any of it.
 const AdminApp = lazy(() => import('./admin/AdminApp.jsx'))
+const WatchApp = lazy(() => import('./admin/WatchApp.jsx'))
 
 export default function App() {
   const [path] = useRoute()
 
   if (!isConfigured) return <NotConfigured />
 
-  // Admin lives under /admin; everything else is the intern experience.
+  // /admin = verification dashboard; /watch = view-only spectator dashboard;
+  // everything else is the intern experience.
   if (path.startsWith('/admin')) {
     return (
       <Suspense fallback={<div className="app pad center muted">Loading admin…</div>}>
         <AdminApp />
+      </Suspense>
+    )
+  }
+  if (path.startsWith('/watch')) {
+    return (
+      <Suspense fallback={<div className="app pad center muted">Loading…</div>}>
+        <WatchApp />
       </Suspense>
     )
   }

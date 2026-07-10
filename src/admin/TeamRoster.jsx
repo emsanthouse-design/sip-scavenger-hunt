@@ -3,7 +3,7 @@ import { saveConfig } from '../lib/adminApi'
 
 // Who's joined what team. Names are editable inline (for the inevitable joke
 // entry) — an admin rename sticks; the intern's phone won't overwrite it.
-export default function TeamRoster({ teams, members, onChanged }) {
+export default function TeamRoster({ teams, members, onChanged, readOnly = false }) {
   const byTeam = new Map(teams.map((t) => [t.id, []]))
   const orphans = []
   for (const m of members) {
@@ -14,7 +14,8 @@ export default function TeamRoster({ teams, members, onChanged }) {
   return (
     <div className="pad stack">
       <div className="banner info">
-        {members.length} joined so far. Tap a name to fix it — your edit sticks.
+        {members.length} joined so far.
+        {!readOnly && ' Tap a name to fix it — your edit sticks.'}{' '}
         Updates every ~15s while people join.
       </div>
 
@@ -30,7 +31,7 @@ export default function TeamRoster({ teams, members, onChanged }) {
             <div className="muted small">No one yet.</div>
           )}
           {byTeam.get(t.id).map((m) => (
-            <MemberRow key={m.id} member={m} onChanged={onChanged} />
+            <MemberRow key={m.id} member={m} onChanged={onChanged} readOnly={readOnly} />
           ))}
         </div>
       ))}
@@ -39,7 +40,7 @@ export default function TeamRoster({ teams, members, onChanged }) {
         <div className="card">
           <strong className="display">Unassigned</strong>
           {orphans.map((m) => (
-            <MemberRow key={m.id} member={m} onChanged={onChanged} />
+            <MemberRow key={m.id} member={m} onChanged={onChanged} readOnly={readOnly} />
           ))}
         </div>
       )}
@@ -47,7 +48,7 @@ export default function TeamRoster({ teams, members, onChanged }) {
   )
 }
 
-function MemberRow({ member, onChanged }) {
+function MemberRow({ member, onChanged, readOnly = false }) {
   const [editing, setEditing] = useState(false)
   const [val, setVal] = useState(member.name)
   const [busy, setBusy] = useState(false)
@@ -104,11 +105,12 @@ function MemberRow({ member, onChanged }) {
         <>
           <span
             className="grow"
-            style={{ cursor: 'pointer' }}
-            onClick={() => setEditing(true)}
-            title="Tap to rename"
+            style={readOnly ? undefined : { cursor: 'pointer' }}
+            onClick={readOnly ? undefined : () => setEditing(true)}
+            title={readOnly ? undefined : 'Tap to rename'}
           >
-            {member.name} <span className="muted small">✎</span>
+            {member.name}
+            {!readOnly && <span className="muted small"> ✎</span>}
           </span>
           <span className="muted small">{when.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
         </>

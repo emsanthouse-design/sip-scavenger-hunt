@@ -13,6 +13,7 @@ export default function ActivityTab({
   questMap,
   members,
   onMembersChanged,
+  readOnly = false,
 }) {
   const [view, setView] = useState('strategy')
 
@@ -46,7 +47,12 @@ export default function ActivityTab({
       ) : view === 'map' ? (
         <MapTab teams={teams} submissions={submissions} challengeMap={challengeMap} />
       ) : (
-        <TeamRoster teams={teams} members={members} onChanged={onMembersChanged} />
+        <TeamRoster
+          teams={teams}
+          members={members}
+          onChanged={onMembersChanged}
+          readOnly={readOnly}
+        />
       )}
     </>
   )

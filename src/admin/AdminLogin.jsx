@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { verifyAdminPassword, setAdminPassword } from '../lib/adminApi'
+import { verifyPassword, setAdminPassword } from '../lib/adminApi'
 
 export default function AdminLogin({ onOk }) {
   const [pw, setPw] = useState('')
@@ -11,9 +11,13 @@ export default function AdminLogin({ onOk }) {
     setBusy(true)
     setErr('')
     try {
-      const ok = await verifyAdminPassword(pw)
-      if (!ok) {
-        setErr('Wrong password.')
+      const role = await verifyPassword(pw)
+      if (role !== 'admin') {
+        setErr(
+          role === 'viewer'
+            ? 'That’s the view-only password — use the /watch page instead.'
+            : 'Wrong password.',
+        )
         setBusy(false)
         return
       }

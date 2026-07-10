@@ -26,10 +26,15 @@ function json(body, status = 200) {
 export default async function handler(req) {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
-  // Auth: simple shared password, compared in constant-ish time.
-  const expected = process.env.ADMIN_PASSWORD || ''
+  // Auth. Two tiers: ADMIN_PASSWORD unlocks everything; VIEWER_PASSWORD (the
+  // spectator link for the roamers) can only ping — every write still requires
+  // the admin password.
+  const adminPw = process.env.ADMIN_PASSWORD || ''
+  const viewerPw = process.env.VIEWER_PASSWORD || ''
   const given = req.headers.get('x-admin-password') || ''
-  if (!expected || given !== expected) return json({ error: 'Unauthorized' }, 401)
+  const isAdmin = Boolean(adminPw) && given === adminPw
+  const isViewer = Boolean(viewerPw) && given === viewerPw
+  if (!isAdmin && !isViewer) return json({ error: 'Unauthorized' }, 401)
 
   let payload
   try {
@@ -38,9 +43,10 @@ export default async function handler(req) {
     return json({ error: 'Bad JSON' }, 400)
   }
 
-  // Login ping just confirms the password.
-  if (payload.action === 'ping') return json({ ok: true })
+  // Login ping confirms the password and reports which tier it belongs to.
+  if (payload.action === 'ping') return json({ ok: true, role: isAdmin ? 'admin' : 'viewer' })
 
+  if (!isAdmin) return json({ error: 'View-only password' }, 401)
   if (payload.action !== 'review') return json({ error: 'Unknown action' }, 400)
 
   const { id, status, awardedPoints, note } = payload

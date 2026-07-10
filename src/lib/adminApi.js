@@ -57,14 +57,39 @@ async function post(path, body) {
   return res.json()
 }
 
-// Verify the password by hitting the review endpoint in "ping" mode.
-export async function verifyAdminPassword(pw) {
+// Verify a password by hitting the review endpoint in "ping" mode.
+// Returns 'admin', 'viewer', or null.
+export async function verifyPassword(pw) {
   const res = await fetch('/api/admin-review', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
     body: JSON.stringify({ action: 'ping' }),
   })
-  return res.ok
+  if (!res.ok) return null
+  try {
+    const j = await res.json()
+    return j.role || 'admin'
+  } catch {
+    return 'admin'
+  }
+}
+
+// Spectator (/watch) session, stored separately from the admin password so a
+// viewer login never unlocks the real admin dashboard.
+const VIEWER_KEY = 'sip-viewer-pw'
+export function getViewerPassword() {
+  try {
+    return sessionStorage.getItem(VIEWER_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+export function setViewerPassword(pw) {
+  try {
+    sessionStorage.setItem(VIEWER_KEY, pw)
+  } catch {
+    /* ignore */
+  }
 }
 
 // Set a submission's status. points override is optional (partial credit).

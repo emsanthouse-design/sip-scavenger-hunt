@@ -9,6 +9,7 @@ import ScoreHeader from './ScoreHeader.jsx'
 import ChallengeCard from './ChallengeCard.jsx'
 import SubmitSheet from './SubmitSheet.jsx'
 import Countdown from './Countdown.jsx'
+import GuidePage from './GuidePage.jsx'
 import { useOnline } from '../lib/useOnline'
 
 const TEAM_KEY = 'sip-team'
@@ -54,6 +55,7 @@ export default function InternApp() {
   const { loading, challenges, quests, config, teams } = useHuntData()
   const [saved, setSaved] = useState(loadSaved)
   const [openChallenge, setOpenChallenge] = useState(null)
+  const [showGuide, setShowGuide] = useState(false)
   const online = useOnline()
 
   const team = saved.team
@@ -93,6 +95,8 @@ export default function InternApp() {
   if (loading) return <Splash />
 
   if (!team) return <JoinTeam teams={teams} onJoin={join} />
+
+  if (showGuide) return <GuidePage onBack={() => setShowGuide(false)} />
 
   // Group active challenges by quest, in quest order (1..5, then roaming = 0 last).
   const activeChallenges = challenges.filter((c) => c.active !== false)
@@ -153,6 +157,11 @@ export default function InternApp() {
 
         <div className="spacer" />
         <div className="center">
+          <button className="secondary" onClick={() => { setShowGuide(true); window.scrollTo(0, 0) }}>
+            📖 Player guide
+          </button>
+        </div>
+        <div className="center" style={{ marginTop: 14 }}>
           <span
             className="adminlink"
             style={{ cursor: 'pointer' }}
