@@ -123,23 +123,28 @@ export default function RevealTab({
   const cur = STAGES[Math.min(stage, STAGES.length - 1)]
   const last = stage >= STAGES.length - 1
 
-  // The recap is presenter-driven: while on it, "next" steps through PLAYS
-  // first and only moves to the next section after the tape ends.
+  // Two kinds of navigation around the play-by-play:
+  //   - stepNext/stepBack move through PLAYS first (the on-slide < > arrows
+  //     and the arrow keys — the natural viewing flow)
+  //   - next/back (the bottom buttons) always jump WHOLE SECTIONS, so a viewer
+  //     can skip the rest of the tape entirely
   const [recapIdx, setRecapIdx] = useState(0)
-  const next = () => {
+  const next = () => setStage((s) => Math.min(s + 1, STAGES.length - 1))
+  const back = () => setStage((s) => Math.max(s - 1, 0))
+  const stepNext = () => {
     if (cur === 'recap' && recapIdx < recap.length - 1) setRecapIdx(recapIdx + 1)
-    else setStage((s) => Math.min(s + 1, STAGES.length - 1))
+    else next()
   }
-  const back = () => {
+  const stepBack = () => {
     if (cur === 'recap' && recapIdx > 0) setRecapIdx(recapIdx - 1)
-    else setStage((s) => Math.max(s - 1, 0))
+    else back()
   }
-  // Keyboard handlers read the latest next/back through refs (cur/recapIdx
+  // Keyboard handlers read the latest step fns through refs (cur/recapIdx
   // change every render; a once-bound listener would go stale).
-  const nextRef = useRef(next)
-  const backRef = useRef(back)
-  nextRef.current = next
-  backRef.current = back
+  const nextRef = useRef(stepNext)
+  const backRef = useRef(stepBack)
+  nextRef.current = stepNext
+  backRef.current = stepBack
 
   // --- music ----------------------------------------------------------------
   const [music, setMusic] = useState(false)
@@ -514,6 +519,24 @@ export default function RevealTab({
           <div className="reveal-sub" style={{ fontFamily: 'var(--display)', fontWeight: 700 }}>
             Now go celebrate — you earned it. 🎉
           </div>
+
+          <div className="reveal-promo">
+            <div className="label">City of Boston · Summer Internship Program</div>
+            <p>
+              This was one afternoon of a summer spent doing real work for the
+              City of Boston — and, occasionally, chasing riddles across
+              downtown. Know a student who belongs in next year’s cohort?
+              Send them our way.
+            </p>
+            <a
+              href="https://www.boston.gov/internships"
+              target="_blank"
+              rel="noreferrer"
+            >
+              boston.gov/internships →
+            </a>
+          </div>
+
           <button
             className="secondary"
             onClick={() => {
@@ -543,7 +566,7 @@ export default function RevealTab({
         )}
         {!last && (
           <button className="small" onClick={next}>
-            Next →
+            {cur === 'recap' ? 'Skip ahead →' : 'Next →'}
           </button>
         )}
         <span className="hint">arrow keys / space work too</span>
