@@ -382,6 +382,13 @@ h1.recap-bounty, h1.recap-cliff { color: #ffd23f; }
   margin-right: 6px;
   vertical-align: -2px;
 }
+.reveal-fp-legend .blurb {
+  font-style: normal;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #8fa9bd;
+}
 
 /* Controls */
 .reveal-controls {

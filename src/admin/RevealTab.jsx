@@ -281,23 +281,36 @@ export default function RevealTab({
 
       {cur === 'fingerprints' && (
         <div className="reveal-stage">
-          <div className="reveal-kicker">How you played it</div>
+          <div className="reveal-kicker">Same hunt — two very different playbooks</div>
           <h1 className="reveal-title" style={{ fontSize: 'clamp(24px,4.5vw,52px)' }}>
-            Strategy Fingerprints
+            The Game Plans
           </h1>
           <div className="reveal-sub">
-            Where each team’s points came from. One long color = went deep. A
-            rainbow = went wide.
+            Challenges came in five flavors, each worth different points. These
+            bars show where each team’s points came from — one dominant color
+            means they bet big on a favorite; a rainbow means they grabbed a
+            little of everything.
           </div>
           <div className="reveal-fp-legend">
-            {[1, 2, 3, 4, 5, 6, 0].map((q) =>
-              fingerprints.some((f) => f.pts.get(q)) ? (
+            {[1, 2, 3, 4, 5, 6, 0].map((q) => {
+              if (!fingerprints.some((f) => f.pts.get(q))) return null
+              const blurbs = {
+                1: 'quick 1-pt photo grabs',
+                2: 'the 2-pt riddle trail',
+                3: '3-pt team videos',
+                4: '2-pt City Hall missions',
+                5: 'big 5-pt culture & museum visits',
+                6: 'LinkedIn repost bonus',
+                0: 'catching the roamers',
+              }
+              return (
                 <span key={q}>
                   <i style={{ background: QUEST_COLORS[q] }} />
                   {questMap.get(q)?.name || 'Quest ' + q}
+                  <em className="blurb"> — {blurbs[q]}</em>
                 </span>
-              ) : null,
-            )}
+              )
+            })}
           </div>
           <div className="reveal-bars">
             {fingerprints.map(({ team, pts, total }) => (
