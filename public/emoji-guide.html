@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Emoji Translation Bureau — iPhone ↔ Android</title>
+<meta name="description" content="A comprehensive (and only slightly unhinged) guide to how your emojis actually look on the other operating system." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #091f2f;            /* Charles Blue */
+    --blue: #1871bd;           /* Optimistic Blue */
+    --red: #fb4d42;            /* Freedom Trail Red */
+    --paper: #fdfaf5;
+    --card: #ffffff;
+    --line: #e4ddd2;
+    --muted: #5b6b78;
+    --imsg: #1871bd;           /* "your" bubble */
+    --droid: #3ddc84;          /* android green */
+    --droid-ink: #0b3d22;
+    --shadow: 0 2px 10px rgba(9, 31, 47, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #f0ede7;
+      --paper: #0d1a24;
+      --card: #14273a;
+      --line: #2a3f52;
+      --muted: #9db0bf;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Lora", Georgia, serif;
+    line-height: 1.55;
+  }
+  h1, h2, h3, .chip, .btn, .label, .verdict, .bubble-tag {
+    font-family: "Montserrat", "Helvetica Neue", sans-serif;
+  }
+
+  header.masthead {
+    background: #091f2f;
+    color: #fdfaf5;
+    padding: 2.2rem 1.2rem 2.6rem;
+    text-align: center;
+  }
+  .masthead .bureau {
+    font-family: "Montserrat", sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #8fc3ef;
+  }
+  .masthead h1 {
+    margin: 0.5rem 0 0.4rem;
+    font-size: clamp(1.6rem, 6vw, 2.6rem);
+    font-weight: 800;
+    line-height: 1.15;
+  }
+  .masthead h1 .vs { color: var(--red); }
+  .masthead p.dek {
+    max-width: 34rem;
+    margin: 0.6rem auto 0;
+    font-size: 1rem;
+    color: #cfdde9;
+    font-style: italic;
+  }
+  .masthead .badge-row {
+    margin-top: 1rem;
+    font-size: 1.6rem;
+    letter-spacing: 0.4rem;
+  }
+
+  main { max-width: 46rem; margin: 0 auto; padding: 0 1rem 4rem; }
+  section { margin-top: 2.6rem; }
+  h2 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin: 0 0 0.3rem;
+  }
+  h2 .no {
+    color: var(--red);
+    font-size: 0.8rem;
+    vertical-align: super;
+    letter-spacing: 0.1em;
+  }
+  .sub { color: var(--muted); margin: 0 0 1.2rem; font-style: italic; }
+
+  /* ---------- Translator ---------- */
+  .translator {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 1.1rem;
+    margin-top: -1.6rem;
+  }
+  .translator textarea {
+    width: 100%;
+    min-height: 4.2rem;
+    resize: vertical;
+    font: 1.05rem/1.5 "Lora", Georgia, serif;
+    color: var(--ink);
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 0.7rem 0.9rem;
+  }
+  .translator textarea:focus { outline: none; border-color: var(--blue); }
+  .try-row { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.65rem; }
+  .btn {
+    border: 1.5px solid var(--blue);
+    color: var(--blue);
+    background: transparent;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+  }
+  .btn:active { background: var(--blue); color: #fff; }
+
+  .bubbles { margin-top: 1.1rem; display: none; }
+  .bubbles.on { display: block; }
+  .bubble-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0.7rem 0 0.25rem;
+  }
+  .bubble {
+    display: inline-block;
+    max-width: 92%;
+    padding: 0.6rem 0.9rem;
+    border-radius: 18px;
+    font-size: 1.05rem;
+    overflow-wrap: anywhere;
+  }
+  .bubble.you {
+    background: var(--imsg);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .row-you { text-align: right; }
+  .bubble.him {
+    background: var(--droid);
+    color: var(--droid-ink);
+    border-bottom-left-radius: 4px;
+  }
+  .bubble img.noto {
+    height: 1.25em;
+    width: 1.25em;
+    vertical-align: -0.25em;
+    margin: 0 0.02em;
+  }
+  .verdict {
+    margin-top: 1.1rem;
+    border-top: 2px dashed var(--line);
+    padding-top: 0.9rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .verdict .flames { letter-spacing: 0.1em; }
+  .verdict small { display: block; font-weight: 400; font-family: "Lora", serif; font-style: italic; color: var(--muted); margin-top: 0.2rem; }
+  .dossier { margin-top: 0.9rem; display: grid; gap: 0.8rem; }
+
+  /* ---------- Explainer cards ---------- */
+  .explain { display: grid; gap: 0.9rem; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .explain { grid-template-columns: 1fr 1fr; } }
+  .fact {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 0.95rem 1.05rem;
+    box-shadow: var(--shadow);
+  }
+  .fact h3 { margin: 0 0 0.35rem; font-size: 0.95rem; }
+  .fact p { margin: 0; font-size: 0.92rem; color: var(--muted); }
+  .fact .big { font-size: 1.5rem; margin-right: 0.3rem; vertical-align: -0.2rem; }
+
+  /* ---------- Field guide ---------- */
+  .controls { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1.1rem; }
+  .controls input[type="search"] {
+    flex: 1 1 100%;
+    font: 0.95rem "Lora", serif;
+    color: var(--ink);
+    background: var(--card);
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    padding: 0.5rem 1rem;
+  }
+  .controls input[type="search"]:focus { outline: none; border-color: var(--blue); }
+  .chip {
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--muted);
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+  }
+  .chip.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+  .entry {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 1rem 1.05rem;
+  }
+  #guide-list { display: grid; gap: 0.9rem; }
+  .entry .top { display: flex; align-items: center; gap: 0.9rem; }
+  .glyphs { display: flex; gap: 0.7rem; flex-shrink: 0; }
+  .glyph { text-align: center; }
+  .glyph .art { font-size: 2.1rem; line-height: 1; display: block; height: 2.4rem; }
+  .glyph img { height: 2.1rem; width: 2.1rem; display: inline-block; }
+  .glyph .label {
+    display: block;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 0.15rem;
+  }
+  .entry .name { font-family: "Montserrat", sans-serif; font-weight: 700; font-size: 0.95rem; }
+  .entry .drama { font-size: 0.8rem; margin-top: 0.15rem; }
+  .entry .drama .safe { color: var(--muted); font-style: italic; font-family: "Lora", serif; }
+  .entry dl { margin: 0.75rem 0 0; font-size: 0.92rem; }
+  .entry dt {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-top: 0.55rem;
+  }
+  .entry dt.his { color: #1d9d5f; }
+  .entry dt.incident { color: var(--red); }
+  .entry dd { margin: 0.1rem 0 0; }
+  .none-msg { color: var(--muted); font-style: italic; text-align: center; padding: 1.5rem 0; }
+
+  /* ---------- Timeline ---------- */
+  .timeline { list-style: none; margin: 0; padding: 0; border-left: 3px solid var(--red); }
+  .timeline li { position: relative; padding: 0 0 1.3rem 1.2rem; }
+  .timeline li::before {
+    content: "";
+    position: absolute;
+    left: -0.55rem;
+    top: 0.35rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    background: var(--red);
+    border: 3px solid var(--paper);
+  }
+  .timeline .when {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 800;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+  .timeline .what { font-size: 0.95rem; margin-top: 0.15rem; }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-style: italic;
+    padding: 0 1.5rem 3rem;
+    max-width: 40rem;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="bureau">The Emoji Translation Bureau · Est. the day she found out</div>
+  <h1>iPhone <span class="vs">↔</span> Android<br />What He Actually Sees</h1>
+  <p class="dek">A comprehensive field guide for anyone who just discovered — one full year into a relationship — that their emoji nuance has been lost in translation this whole time.</p>
+  <div class="badge-row">😤📲💔📲😅</div>
+</header>
+
+<main>
+
+  <!-- ============ TRANSLATOR ============ -->
+  <section id="translator-sec">
+    <div class="translator">
+      <h2><span class="no">TOOL</span> The Translator</h2>
+      <p class="sub">Type a text. See it in your dialect and in his. (The green bubble uses Google's official Noto emoji art — the actual designs stock Android draws.)</p>
+      <textarea id="msg" placeholder="omg stop 😭 you're actually so funny 😤💀" autocomplete="off"></textarea>
+      <div class="try-row">
+        <button class="btn" data-fill="hey 🥹 thinking about you 😪💨">try: affectionate (risky)</button>
+        <button class="btn" data-fill="sounds fun!! 😁🤗 can't wait 😬">try: 2015 disaster kit</button>
+        <button class="btn" data-fill="date night? 🍔🍺🥯🍑">try: food scandal sampler</button>
+        <button class="btn" data-fill="k. 🙂👍">try: declaration of war</button>
+      </div>
+
+      <div class="bubbles" id="bubbles">
+        <div class="bubble-tag">What you sent (your phone's art)</div>
+        <div class="row-you"><span class="bubble you" id="bubble-you"></span></div>
+        <div class="bubble-tag">What he received (Google's art)</div>
+        <div><span class="bubble him" id="bubble-him"></span></div>
+        <div class="verdict" id="verdict"></div>
+        <div class="dossier" id="dossier"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EXPLAINER ============ -->
+  <section>
+    <h2><span class="no">01</span> How Is This Even Legal?</h2>
+    <p class="sub">The technical scandal underneath your relationship.</p>
+    <div class="explain">
+      <div class="fact">
+        <h3><span class="big">🔤</span>Emoji are letters, not pictures</h3>
+        <p>When you send 😭 you're not sending an image — you're sending the Unicode character U+1F62D, basically a fancy letter of the alphabet. His phone receives the letter and draws it with <em>its own</em> art. You've never once seen the same picture.</p>
+      </div>
+      <div class="fact">
+        <h3><span class="big">🎨</span>Every company draws its own set</h3>
+        <p>Apple has one set, Google (Noto) another, Samsung a third, and WhatsApp, Facebook, and (formerly) Twitter all drew their own too. Same characters, wildly different artistic opinions — like fonts, but emotionally load-bearing.</p>
+      </div>
+      <div class="fact">
+        <h3><span class="big">🌀</span>The Samsung plot twist</h3>
+        <p>If he has a Galaxy, he doesn't even see Google's versions — Samsung draws its own on top of Android. There isn't one "Android emoji." There's a whole extended universe, and your texts are being localized without your consent.</p>
+      </div>
+      <div class="fact">
+        <h3><span class="big">▯</span>The tofu problem</h3>
+        <p>Brand-new emoji roll out at different speeds. If his phone is behind on updates, your cutting-edge emoji arrives as a blank box (nicknamed "tofu"). That □ he ignored? That was a feeling. It died in transit.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FIELD GUIDE ============ -->
+  <section>
+    <h2><span class="no">02</span> The Field Guide</h2>
+    <p class="sub">Every emoji with a documented cross-platform incident, a criminal record, or a misinterpretation risk. Drama rated in 🔥 (1 = harmless, 5 = has caused international incidents).</p>
+    <div class="controls">
+      <input type="search" id="search" placeholder="Search the archives… (try 'burger' or paste an emoji)" />
+      <button class="chip on" data-cat="all">All</button>
+      <button class="chip" data-cat="faces">Faces</button>
+      <button class="chip" data-cat="hands">Hands &amp; gestures</button>
+      <button class="chip" data-cat="food">Food scandals</button>
+      <button class="chip" data-cat="wild">Wildcards</button>
+    </div>
+    <div id="guide-list"></div>
+  </section>
+
+  <!-- ============ HALL OF INFAMY ============ -->
+  <section>
+    <h2><span class="no">03</span> The Hall of Infamy</h2>
+    <p class="sub">A brief history of emoji divergence — real events, lightly dramatized.</p>
+    <ul class="timeline">
+      <li>
+        <div class="when">April 2016</div>
+        <div class="what">University of Minnesota researchers publish <em>"Blissfully Happy or Ready to Fight"</em>, scientifically confirming that the same emoji reads completely differently across platforms — with 😁 crowned the most misread character in the language. Your relationship's fate was peer-reviewed before it began.</div>
+      </li>
+      <li>
+        <div class="when">August 2016</div>
+        <div class="what">Apple unilaterally turns the revolver 🔫 into a toy water pistol. For the next two years, an iPhone user's squirt gun arrives on other phones as an actual firearm. Possibly the highest-stakes translation error in the entire system.</div>
+      </li>
+      <li>
+        <div class="when">November 2016</div>
+        <div class="what"><strong>Peach-gate.</strong> An iOS beta redesigns 🍑 to look like actual fruit. The internet revolts within hours. Apple restores the butt before the update even ships. Democracy works.</div>
+      </li>
+      <li>
+        <div class="when">August 2017</div>
+        <div class="what">Android 8.0 executes the beloved "blob" emojis and replaces them with standard round faces. Millions mourn. This is also the moment Android and iPhone emoji started converging — everything before this line was the wild west.</div>
+      </li>
+      <li>
+        <div class="when">October 2017</div>
+        <div class="what"><strong>Burger-gate.</strong> Someone notices Google's 🍔 puts the cheese <em>underneath the patty</em>. Google's CEO publicly promises to "drop everything" and address it. The cheese is relocated. Meanwhile, Google's 🍺 is caught with its foam floating mid-air above a half-empty glass, in defiance of physics. Also fixed. Rough season for Google's kitchen.</div>
+      </li>
+      <li>
+        <div class="when">October 2018</div>
+        <div class="what"><strong>Bagel-gate.</strong> Apple ships a 🥯 so joyless — machine-sliced, visibly dry, no schmear — that the nation protests. Apple adds cream cheese within weeks. The same season, Google and Samsung finally holster their revolvers and go water-pistol. Peace, at last, on one front.</div>
+      </li>
+      <li>
+        <div class="when">2019 → today</div>
+        <div class="what"><strong>The Great Convergence.</strong> The big vendors now design defensively and the sets mostly align. But "mostly" is doing a lot of work in that sentence — the nuance gap survives, which is why this Bureau exists.</div>
+      </li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  Issued by the Emoji Translation Bureau. Android column rendered with Google's official Noto emoji artwork; your column rendered by whatever device you're holding. If he has a Samsung, apply an additional unknowable layer of interpretation. No emojis were harmed in the making of this guide, except the blobs (2017, never forget). 🫡
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var NOTO = "https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/128/";
+
+  // Noto filenames: codepoints in lowercase hex, joined by "_", with the
+  // FE0F variation selector dropped (that's how the noto-emoji repo names files).
+  function notoUrl(str) {
+    var codes = [];
+    for (var i = 0; i < str.length;) {
+      var cp = str.codePointAt(i);
+      if (cp !== 0xfe0f) codes.push(cp.toString(16));
+      i += cp > 0xffff ? 2 : 1;
+    }
+    return NOTO + "emoji_u" + codes.join("_") + ".png";
+  }
+
+  function notoImg(str) {
+    var img = document.createElement("img");
+    img.className = "noto";
+    img.alt = str;
+    img.loading = "lazy";
+    img.src = notoUrl(str);
+    // If Google hasn't drawn it (flags, very new emoji), fall back to text.
+    img.onerror = function () {
+      var span = document.createElement("span");
+      span.textContent = str;
+      span.title = "No Google artwork found — arrives as-is, or as tofu ▯";
+      if (img.parentNode) img.parentNode.replaceChild(span, img);
+    };
+    return img;
+  }
+
+  /* ============ THE ARCHIVES ============ */
+  // e: the emoji · name · cat · drama 1–5 ·
+  // ip: what iPhone-you means · an: how it can land over there ·
+  // note: incident report (optional)
+  var DATA = [
+    // ---- faces ----
+    { e: "😂", name: "Face with Tears of Joy", cat: "faces", drama: 1,
+      ip: "Genuinely laughing (or being a millennial — both valid).",
+      an: "Same laugh, marginally different tears. The one emoji world peace agrees on." },
+    { e: "😭", name: "Loudly Crying Face", cat: "faces", drama: 2,
+      ip: "Laughing SO hard. Or devastated. Context-dependent chaos, and you know it.",
+      an: "Google's fountain tears read a touch more sincerely sad — your “this is hilarious” can land as “she is in crisis.”" },
+    { e: "😁", name: "Beaming Face with Smiling Eyes", cat: "faces", drama: 5,
+      ip: "A big, cheerful, sunshine grin.",
+      an: "For years this arrived looking euphoric on Android while Apple's version looked like it was bracing for impact.",
+      note: "The most misread emoji in recorded history: a 2016 University of Minnesota study found people couldn't even agree if it was positive or negative across platforms. It's been redesigned since, but elder texters still don't trust it." },
+    { e: "😬", name: "Grimacing Face", cat: "faces", drama: 4,
+      ip: "Awkward! Yikes! Small oops energy.",
+      an: "Old Samsung drew this as furious, teeth-gritted rage. “Awkward!” arrived as “I will end you.” Modern versions align, but survivors remember." },
+    { e: "🙂", name: "Slightly Smiling Face", cat: "faces", drama: 4,
+      ip: "Passive aggression in its purest, most distilled form. (Unless sent by a parent, in which case: genuine warmth.)",
+      an: "Identical energy on Android. The danger here is generational, not technological — no operating system can protect him." },
+    { e: "🙃", name: "Upside-Down Face", cat: "faces", drama: 3,
+      ip: "Everything is fine. (Everything is not fine.)",
+      an: "Renders the same; the amount of despair packed inside varies only by sender. No font can save you here." },
+    { e: "😅", name: "Grinning Face with Sweat", cat: "faces", drama: 2,
+      ip: "Haha… anyway. Nervous relief with plausible deniability.",
+      an: "Consistent art. The sweat drop survives translation; the anxiety it represents is yours to explain." },
+    { e: "🥲", name: "Smiling Face with Tear", cat: "faces", drama: 3,
+      ip: "Bittersweet. Touched. “This is fine” but tender about it.",
+      an: "The single tear is subtle at text size — routinely misread as actual crying on every platform. Expect a “wait, are you ok?”" },
+    { e: "😊", name: "Smiling Face with Smiling Eyes", cat: "faces", drama: 2,
+      ip: "Warm and genuine. The good one.",
+      an: "Warm everywhere — which means deploying it sarcastically does not travel. The blush is legally binding." },
+    { e: "😌", name: "Relieved Face", cat: "faces", drama: 4,
+      ip: "At peace. Serene. Little self-satisfied exhale.",
+      an: "Reads as flat-out smug on several emoji sets. “I'm relaxed” can arrive as “I'm insufferable.”" },
+    { e: "🙄", name: "Face with Rolling Eyes", cat: "faces", drama: 4,
+      ip: "Obvious, theatrical exasperation.",
+      an: "Google's original 2015 version looked almost coy — a flirty little upward glance. Years of iPhone eye-rolls landed on Android as smug flirtation.",
+      note: "One of the stars of the 2016 misinterpretation study. Now redesigned to be properly annoyed everywhere." },
+    { e: "😤", name: "Face with Steam from Nose", cat: "faces", drama: 4,
+      ip: "Determined!! Hmph!! Gym-montage energy.",
+      an: "Apple's looks furious; other sets lean more “anime training arc.”",
+      note: "Unicode's official name is “Face with Look of TRIUMPH.” Nobody — not one person on any platform — has ever used it that way." },
+    { e: "😪", name: "Sleepy Face", cat: "faces", drama: 5,
+      ip: "You think it's a tear. It is not a tear.",
+      an: "Also not a tear over there.",
+      note: "That's a SNOT BUBBLE — a Japanese anime convention meaning “deeply asleep.” Both platforms draw it correctly and both userbases think someone is quietly weeping. A rare bilateral failure. If you've been using this as “sad,” he's been dating someone who naps mid-sentence." },
+    { e: "🤗", name: "Smiling Face with Open Hands", cat: "faces", drama: 4,
+      ip: "A warm hug! Affection! Coziness!",
+      an: "Those open hands routinely read as jazz hands, “keep away,” or a mime discovering a wall. Your hug may be arriving as spirit fingers." },
+    { e: "🥴", name: "Woozy Face", cat: "faces", drama: 3,
+      ip: "Flustered / unwell / three espresso martinis deep.",
+      an: "Google's leans slightly more “confused”; Apple's is fully unhinged. Calibrate your chaos accordingly." },
+    { e: "🥺", name: "Pleading Face", cat: "faces", drama: 2,
+      ip: "Begging, but cute about it.",
+      an: "Universally understood puppy eyes — though Google's tips a little closer to “about to cry,” so pair with words if you're merely requesting snacks." },
+    { e: "🥹", name: "Face Holding Back Tears", cat: "faces", drama: 4,
+      ip: "Touched. Proud. Overwhelmed in a GOOD way.",
+      an: "The glassy eyes are nearly invisible at text size — easily mistaken for 🥺 or genuine distress. High risk of an unnecessary wellness check." },
+    { e: "🤭", name: "Face with Hand Over Mouth", cat: "faces", drama: 3,
+      ip: "Teehee. Giggling. Delighted and a little scandalous.",
+      an: "Some sets drew this with shocked eyes instead of smiling ones — “teehee” became “I cannot believe what you just said.”" },
+    { e: "😳", name: "Flushed Face", cat: "faces", drama: 3,
+      ip: "Flustered. Blushing. 👀 energy.",
+      an: "Older Android versions leaned pure shock over blush — your “you're cute, stop” arrived as “I have witnessed a crime.”" },
+    { e: "🤨", name: "Face with Raised Eyebrow", cat: "faces", drama: 2,
+      ip: "Skeptical. “Go on…”",
+      an: "Skeptical everywhere; Google's manages to be slightly more judgmental, somehow. Use freely." },
+    { e: "😐", name: "Neutral Face", cat: "faces", drama: 3,
+      ip: "No comment. Done with this. A wall.",
+      an: "The same brick wall on every platform. Note: he cannot hear the extremely specific tone you performed while typing it." },
+    { e: "💀", name: "Skull", cat: "faces", drama: 3,
+      ip: "I'm DEAD. It was funny. This is a compliment.",
+      an: "Identical art on both platforms — the translation risk is purely generational. If he replies “who died?” that's not Android's fault." },
+    { e: "🤡", name: "Clown Face", cat: "faces", drama: 2,
+      ip: "Self-drag. “I really thought he'd text first. 🤡”",
+      an: "The self-drag translates cleanly. Google's clown is marginally friendlier, which arguably makes the self-drag sadder." },
+    { e: "🌚", name: "New Moon Face", cat: "faces", drama: 4,
+      ip: "Creepy-flirty mischief. “hehe.”",
+      an: "Apple's moon has photorealistic texture and haunts dreams; Google's is a friendlier cartoon. Your menace may arrive 30% diluted — or your innocent joke 30% more sinister. A coin flip." },
+    { e: "🫠", name: "Melting Face", cat: "faces", drama: 1,
+      ip: "Melting from embarrassment / heat / affection.",
+      an: "A newer emoji, which means the vendors coordinated for once. Melting is melting, everywhere. Progress!" },
+
+    // ---- hands & gestures ----
+    { e: "👍", name: "Thumbs Up", cat: "hands", drama: 3,
+      ip: "OK! Sounds good! (Or, in a work chat: cold, dead-eyed dismissal.)",
+      an: "The art matches; the passive-aggressive discourse is fully cross-platform. Boomers mean it sincerely. Always check the sender's age before taking offense." },
+    { e: "🙏", name: "Folded Hands", cat: "hands", drama: 4,
+      ip: "Please / thank you / manifesting.",
+      an: "The eternal debate: prayer or high-five? (Officially it's a Japanese please/thanks gesture.) Early designs with prominent sleeve cuffs fueled the high-five faction, and they walk among us still." },
+    { e: "🤌", name: "Pinched Fingers", cat: "hands", drama: 2,
+      ip: "Italian for “what are you DOING?” Also: chef's-kiss adjacent.",
+      an: "Blessedly universal. Some gestures are too powerful for platform politics." },
+    { e: "💁‍♀️", name: "Woman Tipping Hand", cat: "hands", drama: 3,
+      ip: "Sassy hair flip. “And that's on that.”",
+      an: "Officially this is “information desk person,” and older art looked sincerely customer-service. Your sass may historically have arrived as “how may I direct your call?”" },
+    { e: "🫶", name: "Heart Hands", cat: "hands", drama: 1,
+      ip: "Love, in convenient hand-sign form.",
+      an: "New enough that everyone drew it the same. The system occasionally works." },
+    { e: "👯‍♀️", name: "Women with Bunny Ears", cat: "hands", drama: 2,
+      ip: "US!! Besties!! Going out!!",
+      an: "The vibe survives; the outfits differ by platform. Nobody knows why they're in leotards. Nobody has ever asked." },
+    { e: "💨", name: "Dashing Away", cat: "hands", drama: 5,
+      ip: "Zoom! Left quickly! Speed!",
+      an: "It's a motion cloud on every platform.",
+      note: "And yet it is universally, irreversibly received as a fart. This is not a rendering difference — it's a species-level consensus that no vendor can design their way out of. Deploy with extreme caution after 🏃 and never, EVER after 😪." },
+
+    // ---- food scandals ----
+    { e: "🍑", name: "Peach", cat: "food", drama: 5,
+      ip: "1% fruit, 99% anatomy.",
+      an: "Also a butt over there. Some truths are universal.",
+      note: "PEACH-GATE, Nov 2016: an iOS beta redesigned it to look like an actual peach. The internet rioted; Apple restored the butt before the update shipped. The people's victory." },
+    { e: "🍆", name: "Eggplant", cat: "food", drama: 3,
+      ip: "You know.",
+      an: "He knows too. Same meaning on every OS, every continent, forever — arguably the UN's greatest success story. The only risk is your grandmother learning it." },
+    { e: "🍔", name: "Hamburger", cat: "food", drama: 5,
+      ip: "A burger, assembled by someone who has eaten food before.",
+      an: "Now correct — but it wasn't always.",
+      note: "BURGER-GATE, Oct 2017: Google's burger had the cheese UNDER the patty. Google's CEO publicly vowed to “drop everything” and fix it. He did. The cheese now sits lawfully on both platforms." },
+    { e: "🥯", name: "Bagel", cat: "food", drama: 4,
+      ip: "A bagel with cream cheese, as nature intended.",
+      an: "Also schmeared now — but only because the people demanded it.",
+      note: "BAGEL-GATE, Oct 2018: Apple shipped a bagel so joyless — machine-sliced, visibly dry, zero schmear — that there was a national outcry. Apple added cream cheese within weeks." },
+    { e: "🍺", name: "Beer Mug", cat: "food", drama: 4,
+      ip: "A cold one.",
+      an: "A cold one — with a dark past.",
+      note: "In 2017 Google's beer was half-empty with the foam FLOATING IN MID-AIR above the liquid, in open defiance of physics. Fixed, but the Bureau never forgets." },
+    { e: "🔫", name: "Water Pistol", cat: "food", drama: 5,
+      ip: "A toy. A squirt gun. Summer vibes.",
+      an: "A toy now — but from 2016 to 2018, your iPhone water pistol arrived on Android as a REAL REVOLVER.",
+      note: "Apple went toy-first in 2016; Google held out until 2018 (Samsung too). Two full years where a water-balloon-fight invitation read as a threat. The highest-stakes translation error in the system. Now toys everywhere. Détente." },
+
+    // ---- wildcards ----
+    { e: "✨", name: "Sparkles", cat: "wild", drama: 1,
+      ip: "Emphasis, ✨like this✨. Magic. Sarcasm delivery system.",
+      an: "Consistent art everywhere. The sarcasm layer is your responsibility and yours alone." },
+    { e: "❤️", name: "Red Heart", cat: "wild", drama: 2,
+      ip: "Love. The classic.",
+      an: "Consistent — but be aware the heart COLORS have their own generational tier list and unspoken bylaws. That's a different intervention." },
+    { e: "🗿", name: "Moai", cat: "wild", drama: 2,
+      ip: "Deadpan. “bruh.” Stone-faced disbelief.",
+      an: "Identical rocks worldwide. Why a Chilean monolith became Gen Z's poker face is a question for historians, not the Bureau." },
+    { e: "🎉", name: "Party Popper", cat: "wild", drama: 1,
+      ip: "Celebration!!",
+      an: "Universal joy. Confetti knows no platform. Send freely and often." },
+    { e: "🫡", name: "Saluting Face", cat: "wild", drama: 1,
+      ip: "Yes ma'am. On it. o7.",
+      an: "New-generation emoji, consistent everywhere. The respect arrives intact." }
+  ];
+
+  var byEmoji = {};
+  DATA.forEach(function (d) { byEmoji[d.e] = d; });
+
+  /* ============ shared renderers ============ */
+  function flames(n) {
+    return n <= 1
+      ? '<span class="safe">certified harmless</span>'
+      : "🔥".repeat(n) + '<span class="safe"> ' + n + "/5 drama</span>";
+  }
+
+  function entryCard(d) {
+    var card = document.createElement("article");
+    card.className = "entry";
+    card.dataset.cat = d.cat;
+
+    var top = document.createElement("div");
+    top.className = "top";
+
+    var glyphs = document.createElement("div");
+    glyphs.className = "glyphs";
+    var g1 = document.createElement("div");
+    g1.className = "glyph";
+    g1.innerHTML = '<span class="art">' + d.e + '</span><span class="label">your phone</span>';
+    var g2 = document.createElement("div");
+    g2.className = "glyph";
+    var art2 = document.createElement("span");
+    art2.className = "art";
+    art2.appendChild(notoImg(d.e));
+    g2.appendChild(art2);
+    var lbl2 = document.createElement("span");
+    lbl2.className = "label";
+    lbl2.textContent = "his phone";
+    g2.appendChild(lbl2);
+    glyphs.appendChild(g1);
+    glyphs.appendChild(g2);
+
+    var head = document.createElement("div");
+    head.innerHTML = '<div class="name">' + d.name + '</div><div class="drama">' + flames(d.drama) + "</div>";
+
+    top.appendChild(glyphs);
+    top.appendChild(head);
+    card.appendChild(top);
+
+    var dl = document.createElement("dl");
+    dl.innerHTML =
+      "<dt>You mean</dt><dd>" + d.ip + "</dd>" +
+      '<dt class="his">It can land as</dt><dd>' + d.an + "</dd>" +
+      (d.note ? '<dt class="incident">Incident report</dt><dd>' + d.note + "</dd>" : "");
+    card.appendChild(dl);
+    return card;
+  }
+
+  /* ============ field guide ============ */
+  var listEl = document.getElementById("guide-list");
+  var searchEl = document.getElementById("search");
+  var chips = Array.prototype.slice.call(document.querySelectorAll(".chip"));
+  var activeCat = "all";
+
+  function renderGuide() {
+    var q = searchEl.value.trim().toLowerCase();
+    listEl.innerHTML = "";
+    var shown = 0;
+    DATA.forEach(function (d) {
+      if (activeCat !== "all" && d.cat !== activeCat) return;
+      if (q && d.name.toLowerCase().indexOf(q) === -1 && d.e.indexOf(q) === -1 &&
+          (d.note || "").toLowerCase().indexOf(q) === -1) return;
+      listEl.appendChild(entryCard(d));
+      shown++;
+    });
+    if (!shown) {
+      listEl.innerHTML = '<div class="none-msg">No documented incidents match. Either it’s innocent… or it hasn’t been caught yet.</div>';
+    }
+  }
+
+  chips.forEach(function (chip) {
+    chip.addEventListener("click", function () {
+      chips.forEach(function (c) { c.classList.remove("on"); });
+      chip.classList.add("on");
+      activeCat = chip.dataset.cat;
+      renderGuide();
+    });
+  });
+  searchEl.addEventListener("input", renderGuide);
+  renderGuide();
+
+  /* ============ translator ============ */
+  var msgEl = document.getElementById("msg");
+  var bubblesEl = document.getElementById("bubbles");
+  var youEl = document.getElementById("bubble-you");
+  var himEl = document.getElementById("bubble-him");
+  var verdictEl = document.getElementById("verdict");
+  var dossierEl = document.getElementById("dossier");
+
+  function graphemes(text) {
+    if (typeof Intl !== "undefined" && Intl.Segmenter) {
+      var seg = new Intl.Segmenter("en", { granularity: "grapheme" });
+      return Array.from(seg.segment(text), function (s) { return s.segment; });
+    }
+    return Array.from(text);
+  }
+
+  var PICTO = /\p{Extended_Pictographic}|[\u{1F1E6}-\u{1F1FF}]|⃣/u;
+  function isEmoji(g) { return PICTO.test(g); }
+
+  var VERDICTS = {
+    0: ["No emoji detected.", "Texting like a lawyer, I see. Technically un-mistranslatable. Emotionally void."],
+    1: ["Fully safe. Send it.", "Every emoji here means the same thing on his phone. A diplomatic triumph."],
+    2: ["Low risk.", "Minor vibe drift possible, but nothing the relationship can’t absorb."],
+    3: ["Moderate risk.", "At least one of these has a known interpretation gap. Add words if the stakes are high."],
+    4: ["HIGH RISK.", "Something in this message has a documented history of going sideways between platforms. Godspeed."],
+    5: ["MAXIMUM DRAMA.", "This message contains an emoji that has caused actual international incidents. Review the dossier below before sending."]
+  };
+
+  function renderTranslation() {
+    var text = msgEl.value;
+    if (!text.trim()) {
+      bubblesEl.classList.remove("on");
+      return;
+    }
+    bubblesEl.classList.add("on");
+
+    var parts = graphemes(text);
+    youEl.textContent = text;
+
+    himEl.innerHTML = "";
+    var found = [];
+    var seen = {};
+    var buffer = "";
+    function flush() {
+      if (buffer) { himEl.appendChild(document.createTextNode(buffer)); buffer = ""; }
+    }
+    parts.forEach(function (g) {
+      if (isEmoji(g)) {
+        flush();
+        himEl.appendChild(notoImg(g));
+        if (!seen[g]) {
+          seen[g] = true;
+          found.push(g);
+        }
+      } else {
+        buffer += g;
+      }
+    });
+    flush();
+
+    // dossier + verdict
+    dossierEl.innerHTML = "";
+    var maxDrama = 0;
+    var anyEmoji = found.length > 0;
+    found.forEach(function (g) {
+      var d = byEmoji[g];
+      if (d) {
+        maxDrama = Math.max(maxDrama, d.drama);
+        dossierEl.appendChild(entryCard(d));
+      } else {
+        maxDrama = Math.max(maxDrama, 1);
+        var card = document.createElement("article");
+        card.className = "entry";
+        card.innerHTML =
+          '<div class="top"><div class="glyphs"><div class="glyph"><span class="art">' + g +
+          '</span><span class="label">exhibit</span></div></div>' +
+          '<div><div class="name">Not in the archives</div><div class="drama"><span class="safe">no documented incidents. Probably safe. Probably.</span></div></div></div>';
+        dossierEl.appendChild(card);
+      }
+    });
+
+    var level = anyEmoji ? maxDrama : 0;
+    var v = VERDICTS[level];
+    verdictEl.innerHTML =
+      '<span class="flames">' + (level > 1 ? "🔥".repeat(level) : level === 1 ? "✅" : "📄") + "</span> " +
+      "Bureau verdict: " + v[0] + "<small>" + v[1] + "</small>";
+  }
+
+  msgEl.addEventListener("input", renderTranslation);
+  document.querySelectorAll(".try-row .btn").forEach(function (b) {
+    b.addEventListener("click", function () {
+      msgEl.value = b.dataset.fill;
+      renderTranslation();
+      msgEl.focus();
+    });
+  });
+})();
+</script>
+</body>
+</html>
